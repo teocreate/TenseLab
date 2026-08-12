@@ -37,27 +37,405 @@ const tenseGroups = [
     ['Third Conditional','Нереальное условие в прошлом.','Продвинутый','If + Past Perfect, would have + V3','If I had known, I would have called.']
   ]]
 ];
-const subjects = [
-  ['I','я','write','wrote','written','writing','a short email','короткое письмо','my sister'],
-  ['You','ты','read','read','read','reading','this article','эту статью','the teacher'],
-  ['He','он','cook','cooked','cooked','cooking','dinner','ужин','his friends'],
-  ['She','она','drink','drank','drunk','drinking','tea','чай','her parents'],
-  ['We','мы','watch','watched','watched','watching','a new film','новый фильм','our neighbours'],
-  ['They','они','play','played','played','playing','tennis','теннис','the coach'],
-  ['My brother','мой брат','fix','fixed','fixed','fixing','his bike','свой велосипед','his father'],
-  ['Anna','Анна','learn','learned','learned','learning','English','английский','her tutor'],
-  ['The children','дети','build','built','built','building','a tower','башню','their mother'],
-  ['Our team','наша команда','plan','planned','planned','planning','the trip','поездку','the manager'],
-  ['My friend','мой друг','buy','bought','bought','buying','fresh bread','свежий хлеб','his wife'],
-  ['The students','студенты','solve','solved','solved','solving','the problem','задачу','their professor'],
-  ['Kate','Катя','call','called','called','calling','her grandmother','своей бабушке','her brother'],
-  ['The cat','кот','sleep','slept','slept','sleeping','on the sofa','на диване','the dog'],
-  ['David','Дэвид','send','sent','sent','sending','the document','документ','his client'],
-  ['My parents','мои родители','visit','visited','visited','visiting','the museum','музей','our family'],
-  ['The doctor','доктор','check','checked','checked','checking','the patient','пациента','the nurse'],
-  ['I','я','prepare','prepared','prepared','preparing','breakfast','завтрак','my family'],
-  ['She','она','draw','drew','drawn','drawing','a beautiful picture','красивую картину','her teacher'],
-  ['We','мы','meet','met','met','meeting','at the station','на станции','our colleagues']
+/* People. `slot` indexes the 5-form present/future tables (я, ты, он/она, мы, они);
+   `gender` indexes the 4-form past tables, or 'x' where the speaker's gender is
+   unknown and Russian convention writes both endings. `en` picks the English
+   agreement pattern: i = am/was + bare verb, you/pl = are/were + bare verb,
+   s = is/was + third-person -s. */
+const people = {
+  i:         { en: 'I',             low: 'I',             pron: 'I',    ru: 'я',              agr: 'i',   slot: 0, gender: 'x' },
+  you:       { en: 'You',           low: 'you',           pron: 'you',  ru: 'ты',             agr: 'you', slot: 1, gender: 'x' },
+  he:        { en: 'He',            low: 'he',            pron: 'he',   ru: 'он',             agr: 's',   slot: 2, gender: 'm' },
+  she:       { en: 'She',           low: 'she',           pron: 'she',  ru: 'она',            agr: 's',   slot: 2, gender: 'f' },
+  we:        { en: 'We',            low: 'we',            pron: 'we',   ru: 'мы',             agr: 'pl',  slot: 3, gender: 'pl' },
+  they:      { en: 'They',          low: 'they',          pron: 'they', ru: 'они',            agr: 'pl',  slot: 4, gender: 'pl' },
+  brother:   { en: 'My brother',    low: 'my brother',    pron: 'he',   ru: 'мой брат',       agr: 's',   slot: 2, gender: 'm' },
+  sister:    { en: 'My sister',     low: 'my sister',     pron: 'she',  ru: 'моя сестра',     agr: 's',   slot: 2, gender: 'f' },
+  mother:    { en: 'My mother',     low: 'my mother',     pron: 'she',  ru: 'моя мама',       agr: 's',   slot: 2, gender: 'f' },
+  parents:   { en: 'My parents',    low: 'my parents',    pron: 'they', ru: 'мои родители',   agr: 'pl',  slot: 4, gender: 'pl' },
+  friend:    { en: 'My friend',     low: 'my friend',     pron: 'he',   ru: 'мой друг',       agr: 's',   slot: 2, gender: 'm' },
+  boss:      { en: 'My boss',       low: 'my boss',       pron: 'he',   ru: 'мой начальник',  agr: 's',   slot: 2, gender: 'm' },
+  anna:      { en: 'Anna',          low: 'Anna',          pron: 'she',  ru: 'Анна',           agr: 's',   slot: 2, gender: 'f' },
+  kate:      { en: 'Kate',          low: 'Kate',          pron: 'she',  ru: 'Катя',           agr: 's',   slot: 2, gender: 'f' },
+  david:     { en: 'David',         low: 'David',         pron: 'he',   ru: 'Дэвид',          agr: 's',   slot: 2, gender: 'm' },
+  max:       { en: 'Max',           low: 'Max',           pron: 'he',   ru: 'Макс',           agr: 's',   slot: 2, gender: 'm' },
+  children:  { en: 'The children',  low: 'the children',  pron: 'they', ru: 'дети',           agr: 'pl',  slot: 4, gender: 'pl' },
+  girls:     { en: 'The girls',     low: 'the girls',     pron: 'they', ru: 'девочки',        agr: 'pl',  slot: 4, gender: 'pl' },
+  students:  { en: 'The students',  low: 'the students',  pron: 'they', ru: 'студенты',       agr: 'pl',  slot: 4, gender: 'pl' },
+  guests:    { en: 'The guests',    low: 'the guests',    pron: 'they', ru: 'гости',          agr: 'pl',  slot: 4, gender: 'pl' },
+  neighbours:{ en: 'Our neighbours',low: 'our neighbours',pron: 'they', ru: 'наши соседи',    agr: 'pl',  slot: 4, gender: 'pl' },
+  team:      { en: 'Our team',      low: 'our team',      pron: 'it',   ru: 'наша команда',   agr: 's',   slot: 2, gender: 'f' },
+  teacher:   { en: 'The teacher',   low: 'the teacher',   pron: 'she',  ru: 'учительница',    agr: 's',   slot: 2, gender: 'f' },
+  doctor:    { en: 'The doctor',    low: 'the doctor',    pron: 'he',   ru: 'доктор',         agr: 's',   slot: 2, gender: 'm' },
+  engineer:  { en: 'The engineer',  low: 'the engineer',  pron: 'he',   ru: 'инженер',        agr: 's',   slot: 2, gender: 'm' }
+};
+
+/* Verbs. Russian needs four tables where English needs one: the present is
+   imperfective, the continuous past is imperfective, the perfect and simple
+   pasts are perfective, and the simple future is the perfective future.
+   Present/future tables are [я, ты, он, мы, они]; past tables are
+   [м, ж, ср, мн, unknown-gender]. */
+const verbs = {
+  write:   { past:'wrote', pp:'written', ing:'writing', inf:'писать',
+             pres:['пишу','пишешь','пишет','пишем','пишут'],
+             impf:['писал','писала','писало','писали','писал(а)'],
+             perf:['написал','написала','написало','написали','написал(а)'],
+             fut: ['напишу','напишешь','напишет','напишем','напишут'] },
+  read:    { past:'read', pp:'read', ing:'reading', inf:'читать',
+             pres:['читаю','читаешь','читает','читаем','читают'],
+             impf:['читал','читала','читало','читали','читал(а)'],
+             perf:['прочитал','прочитала','прочитало','прочитали','прочитал(а)'],
+             fut: ['прочитаю','прочитаешь','прочитает','прочитаем','прочитают'] },
+  cook:    { past:'cooked', pp:'cooked', ing:'cooking', inf:'готовить',
+             pres:['готовлю','готовишь','готовит','готовим','готовят'],
+             impf:['готовил','готовила','готовило','готовили','готовил(а)'],
+             perf:['приготовил','приготовила','приготовило','приготовили','приготовил(а)'],
+             fut: ['приготовлю','приготовишь','приготовит','приготовим','приготовят'] },
+  drink:   { past:'drank', pp:'drunk', ing:'drinking', inf:'пить',
+             pres:['пью','пьёшь','пьёт','пьём','пьют'],
+             impf:['пил','пила','пило','пили','пил(а)'],
+             perf:['выпил','выпила','выпило','выпили','выпил(а)'],
+             fut: ['выпью','выпьешь','выпьет','выпьем','выпьют'] },
+  watch:   { past:'watched', pp:'watched', ing:'watching', inf:'смотреть',
+             pres:['смотрю','смотришь','смотрит','смотрим','смотрят'],
+             impf:['смотрел','смотрела','смотрело','смотрели','смотрел(а)'],
+             perf:['посмотрел','посмотрела','посмотрело','посмотрели','посмотрел(а)'],
+             fut: ['посмотрю','посмотришь','посмотрит','посмотрим','посмотрят'] },
+  play:    { past:'played', pp:'played', ing:'playing', inf:'играть',
+             pres:['играю','играешь','играет','играем','играют'],
+             impf:['играл','играла','играло','играли','играл(а)'],
+             perf:['сыграл','сыграла','сыграло','сыграли','сыграл(а)'],
+             fut: ['сыграю','сыграешь','сыграет','сыграем','сыграют'] },
+  fix:     { past:'fixed', pp:'fixed', ing:'fixing', inf:'чинить',
+             pres:['чиню','чинишь','чинит','чиним','чинят'],
+             impf:['чинил','чинила','чинило','чинили','чинил(а)'],
+             perf:['починил','починила','починило','починили','починил(а)'],
+             fut: ['починю','починишь','починит','починим','починят'] },
+  learn:   { past:'learned', pp:'learned', ing:'learning', inf:'учить',
+             pres:['учу','учишь','учит','учим','учат'],
+             impf:['учил','учила','учило','учили','учил(а)'],
+             perf:['выучил','выучила','выучило','выучили','выучил(а)'],
+             fut: ['выучу','выучишь','выучит','выучим','выучат'] },
+  build:   { past:'built', pp:'built', ing:'building', inf:'строить',
+             pres:['строю','строишь','строит','строим','строят'],
+             impf:['строил','строила','строило','строили','строил(а)'],
+             perf:['построил','построила','построило','построили','построил(а)'],
+             fut: ['построю','построишь','построит','построим','построят'] },
+  plan:    { past:'planned', pp:'planned', ing:'planning', inf:'планировать',
+             pres:['планирую','планируешь','планирует','планируем','планируют'],
+             impf:['планировал','планировала','планировало','планировали','планировал(а)'],
+             perf:['спланировал','спланировала','спланировало','спланировали','спланировал(а)'],
+             fut: ['спланирую','спланируешь','спланирует','спланируем','спланируют'] },
+  buy:     { past:'bought', pp:'bought', ing:'buying', inf:'покупать',
+             pres:['покупаю','покупаешь','покупает','покупаем','покупают'],
+             impf:['покупал','покупала','покупало','покупали','покупал(а)'],
+             perf:['купил','купила','купило','купили','купил(а)'],
+             fut: ['куплю','купишь','купит','купим','купят'] },
+  solve:   { past:'solved', pp:'solved', ing:'solving', inf:'решать',
+             pres:['решаю','решаешь','решает','решаем','решают'],
+             impf:['решал','решала','решало','решали','решал(а)'],
+             perf:['решил','решила','решило','решили','решил(а)'],
+             fut: ['решу','решишь','решит','решим','решат'] },
+  call:    { past:'called', pp:'called', ing:'calling', inf:'звонить',
+             pres:['звоню','звонишь','звонит','звоним','звонят'],
+             impf:['звонил','звонила','звонило','звонили','звонил(а)'],
+             perf:['позвонил','позвонила','позвонило','позвонили','позвонил(а)'],
+             fut: ['позвоню','позвонишь','позвонит','позвоним','позвонят'] },
+  send:    { past:'sent', pp:'sent', ing:'sending', inf:'отправлять',
+             pres:['отправляю','отправляешь','отправляет','отправляем','отправляют'],
+             impf:['отправлял','отправляла','отправляло','отправляли','отправлял(а)'],
+             perf:['отправил','отправила','отправило','отправили','отправил(а)'],
+             fut: ['отправлю','отправишь','отправит','отправим','отправят'] },
+  visit:   { past:'visited', pp:'visited', ing:'visiting', inf:'посещать',
+             pres:['посещаю','посещаешь','посещает','посещаем','посещают'],
+             impf:['посещал','посещала','посещало','посещали','посещал(а)'],
+             perf:['посетил','посетила','посетило','посетили','посетил(а)'],
+             fut: ['посещу','посетишь','посетит','посетим','посетят'] },
+  check:   { past:'checked', pp:'checked', ing:'checking', inf:'проверять',
+             pres:['проверяю','проверяешь','проверяет','проверяем','проверяют'],
+             impf:['проверял','проверяла','проверяло','проверяли','проверял(а)'],
+             perf:['проверил','проверила','проверило','проверили','проверил(а)'],
+             fut: ['проверю','проверишь','проверит','проверим','проверят'] },
+  draw:    { past:'drew', pp:'drawn', ing:'drawing', inf:'рисовать',
+             pres:['рисую','рисуешь','рисует','рисуем','рисуют'],
+             impf:['рисовал','рисовала','рисовало','рисовали','рисовал(а)'],
+             perf:['нарисовал','нарисовала','нарисовало','нарисовали','нарисовал(а)'],
+             fut: ['нарисую','нарисуешь','нарисует','нарисуем','нарисуют'] },
+  clean:   { past:'cleaned', pp:'cleaned', ing:'cleaning', inf:'убирать',
+             pres:['убираю','убираешь','убирает','убираем','убирают'],
+             impf:['убирал','убирала','убирало','убирали','убирал(а)'],
+             perf:['убрал','убрала','убрало','убрали','убрал(а)'],
+             fut: ['уберу','уберёшь','уберёт','уберём','уберут'] },
+  wash:    { past:'washed', pp:'washed', ing:'washing', inf:'мыть',
+             pres:['мою','моешь','моет','моем','моют'],
+             impf:['мыл','мыла','мыло','мыли','мыл(а)'],
+             perf:['помыл','помыла','помыло','помыли','помыл(а)'],
+             fut: ['помою','помоешь','помоет','помоем','помоют'] },
+  explain: { past:'explained', pp:'explained', ing:'explaining', inf:'объяснять',
+             pres:['объясняю','объясняешь','объясняет','объясняем','объясняют'],
+             impf:['объяснял','объясняла','объясняло','объясняли','объяснял(а)'],
+             perf:['объяснил','объяснила','объяснило','объяснили','объяснил(а)'],
+             fut: ['объясню','объяснишь','объяснит','объясним','объяснят'] },
+  open:    { past:'opened', pp:'opened', ing:'opening', inf:'открывать',
+             pres:['открываю','открываешь','открывает','открываем','открывают'],
+             impf:['открывал','открывала','открывало','открывали','открывал(а)'],
+             perf:['открыл','открыла','открыло','открыли','открыл(а)'],
+             fut: ['открою','откроешь','откроет','откроем','откроют'] },
+  close:   { past:'closed', pp:'closed', ing:'closing', inf:'закрывать',
+             pres:['закрываю','закрываешь','закрывает','закрываем','закрывают'],
+             impf:['закрывал','закрывала','закрывало','закрывали','закрывал(а)'],
+             perf:['закрыл','закрыла','закрыло','закрыли','закрыл(а)'],
+             fut: ['закрою','закроешь','закроет','закроем','закроют'] },
+  finish:  { past:'finished', pp:'finished', ing:'finishing', inf:'заканчивать',
+             pres:['заканчиваю','заканчиваешь','заканчивает','заканчиваем','заканчивают'],
+             impf:['заканчивал','заканчивала','заканчивало','заканчивали','заканчивал(а)'],
+             perf:['закончил','закончила','закончило','закончили','закончил(а)'],
+             fut: ['закончу','закончишь','закончит','закончим','закончат'] },
+  start:   { past:'started', pp:'started', ing:'starting', inf:'начинать',
+             pres:['начинаю','начинаешь','начинает','начинаем','начинают'],
+             impf:['начинал','начинала','начинало','начинали','начинал(а)'],
+             perf:['начал','начала','начало','начали','начал(а)'],
+             fut: ['начну','начнёшь','начнёт','начнём','начнут'] },
+  order:   { past:'ordered', pp:'ordered', ing:'ordering', inf:'заказывать',
+             pres:['заказываю','заказываешь','заказывает','заказываем','заказывают'],
+             impf:['заказывал','заказывала','заказывало','заказывали','заказывал(а)'],
+             perf:['заказал','заказала','заказало','заказали','заказал(а)'],
+             fut: ['закажу','закажешь','закажет','закажем','закажут'] },
+  pay:     { past:'paid', pp:'paid', ing:'paying', inf:'платить',
+             pres:['плачу','платишь','платит','платим','платят'],
+             impf:['платил','платила','платило','платили','платил(а)'],
+             perf:['заплатил','заплатила','заплатило','заплатили','заплатил(а)'],
+             fut: ['заплачу','заплатишь','заплатит','заплатим','заплатят'] },
+  sell:    { past:'sold', pp:'sold', ing:'selling', inf:'продавать',
+             pres:['продаю','продаёшь','продаёт','продаём','продают'],
+             impf:['продавал','продавала','продавало','продавали','продавал(а)'],
+             perf:['продал','продала','продало','продали','продал(а)'],
+             fut: ['продам','продашь','продаст','продадим','продадут'] },
+  bring:   { past:'brought', pp:'brought', ing:'bringing', inf:'приносить',
+             pres:['приношу','приносишь','приносит','приносим','приносят'],
+             impf:['приносил','приносила','приносило','приносили','приносил(а)'],
+             perf:['принёс','принесла','принесло','принесли','принёс(ла)'],
+             fut: ['принесу','принесёшь','принесёт','принесём','принесут'] },
+  help:    { past:'helped', pp:'helped', ing:'helping', inf:'помогать',
+             pres:['помогаю','помогаешь','помогает','помогаем','помогают'],
+             impf:['помогал','помогала','помогало','помогали','помогал(а)'],
+             perf:['помог','помогла','помогло','помогли','помог(ла)'],
+             fut: ['помогу','поможешь','поможет','поможем','помогут'] },
+  invite:  { past:'invited', pp:'invited', ing:'inviting', inf:'приглашать',
+             pres:['приглашаю','приглашаешь','приглашает','приглашаем','приглашают'],
+             impf:['приглашал','приглашала','приглашало','приглашали','приглашал(а)'],
+             perf:['пригласил','пригласила','пригласило','пригласили','пригласил(а)'],
+             fut: ['приглашу','пригласишь','пригласит','пригласим','пригласят'] },
+  book:    { past:'booked', pp:'booked', ing:'booking', inf:'бронировать',
+             pres:['бронирую','бронируешь','бронирует','бронируем','бронируют'],
+             impf:['бронировал','бронировала','бронировало','бронировали','бронировал(а)'],
+             perf:['забронировал','забронировала','забронировало','забронировали','забронировал(а)'],
+             fut: ['забронирую','забронируешь','забронирует','забронируем','забронируют'] },
+  answer:  { past:'answered', pp:'answered', ing:'answering', inf:'отвечать',
+             pres:['отвечаю','отвечаешь','отвечает','отвечаем','отвечают'],
+             impf:['отвечал','отвечала','отвечало','отвечали','отвечал(а)'],
+             perf:['ответил','ответила','ответило','ответили','ответил(а)'],
+             fut: ['отвечу','ответишь','ответит','ответим','ответят'] },
+  choose:  { past:'chose', pp:'chosen', ing:'choosing', inf:'выбирать',
+             pres:['выбираю','выбираешь','выбирает','выбираем','выбирают'],
+             impf:['выбирал','выбирала','выбирало','выбирали','выбирал(а)'],
+             perf:['выбрал','выбрала','выбрало','выбрали','выбрал(а)'],
+             fut: ['выберу','выберешь','выберет','выберем','выберут'] },
+  paint:   { past:'painted', pp:'painted', ing:'painting', inf:'красить',
+             pres:['крашу','красишь','красит','красим','красят'],
+             impf:['красил','красила','красило','красили','красил(а)'],
+             perf:['покрасил','покрасила','покрасило','покрасили','покрасил(а)'],
+             fut: ['покрашу','покрасишь','покрасит','покрасим','покрасят'] },
+  repeat:  { past:'repeated', pp:'repeated', ing:'repeating', inf:'повторять',
+             pres:['повторяю','повторяешь','повторяет','повторяем','повторяют'],
+             impf:['повторял','повторяла','повторяло','повторяли','повторял(а)'],
+             perf:['повторил','повторила','повторило','повторили','повторил(а)'],
+             fut: ['повторю','повторишь','повторит','повторим','повторят'] }
+};
+
+/* The reporting verbs of "future in the past", in the same past-table shape. */
+const reporting = {
+  say:    ['сказал','сказала','сказало','сказали','сказал(а)'],
+  know:   ['знал','знала','знало','знали','знал(а)'],
+  think:  ['думал','думала','думало','думали','думал(а)'],
+  expect: ['ожидал','ожидала','ожидало','ожидали','ожидал(а)']
+};
+
+const willBe = ['буду','будешь','будет','будем','будут'];
+
+/* 60 scenarios: who does what to what. The Russian object carries its own case
+   and preposition, so the templates never have to inflect it. */
+const bank = [
+  ['i',         'write',   'a short email',      'короткое письмо'],
+  ['you',       'read',    'this article',       'эту статью'],
+  ['he',        'cook',    'dinner',             'ужин'],
+  ['she',       'drink',   'green tea',          'зелёный чай'],
+  ['we',        'watch',   'a new film',         'новый фильм'],
+  ['they',      'play',    'tennis',             'в теннис'],
+  ['brother',   'fix',     'his bike',           'свой велосипед'],
+  ['anna',      'learn',   'English',            'английский'],
+  ['children',  'build',   'a sandcastle',       'замок из песка'],
+  ['team',      'plan',    'the trip',           'поездку'],
+  ['friend',    'buy',     'fresh bread',        'свежий хлеб'],
+  ['students',  'solve',   'the problem',        'задачу'],
+  ['kate',      'call',    'her grandmother',    'своей бабушке'],
+  ['david',     'send',    'the document',       'документ'],
+  ['parents',   'visit',   'the museum',         'музей'],
+  ['doctor',    'check',   'the patient',        'пациента'],
+  ['i',         'cook',    'breakfast',          'завтрак'],
+  ['she',       'draw',    'a beautiful picture','красивую картину'],
+  ['we',        'clean',   'the kitchen',        'кухню'],
+  ['neighbours','wash',    'their car',          'свою машину'],
+  ['teacher',   'explain', 'the rule',           'правило'],
+  ['boss',      'open',    'the office',         'офис'],
+  ['girls',     'close',   'the windows',        'окна'],
+  ['engineer',  'finish',  'the report',         'отчёт'],
+  ['sister',    'start',   'a new course',       'новый курс'],
+  ['guests',    'order',   'pizza',              'пиццу'],
+  ['max',       'pay',     'for the tickets',    'за билеты'],
+  ['mother',    'sell',    'the old sofa',       'старый диван'],
+  ['i',         'bring',   'the keys',           'ключи'],
+  ['you',       'watch',   'the news',           'новости'],
+  ['he',        'order',   'a taxi',             'такси'],
+  ['we',        'help',    'our neighbours',     'соседям'],
+  ['they',      'invite',  'their friends',      'своих друзей'],
+  ['anna',      'book',    'a table',            'столик'],
+  ['kate',      'answer',  'the letter',         'на письмо'],
+  ['students',  'choose',  'a topic',            'тему'],
+  ['brother',   'paint',   'the fence',          'забор'],
+  ['doctor',    'repeat',  'the question',       'вопрос'],
+  ['children',  'read',    'a fairy tale',       'сказку'],
+  ['friend',    'watch',   'the match',          'матч'],
+  ['she',       'cook',    'soup',               'суп'],
+  ['parents',   'buy',     'a new fridge',       'новый холодильник'],
+  ['we',        'write',   'the invitations',    'приглашения'],
+  ['david',     'learn',   'Spanish',            'испанский'],
+  ['team',      'solve',   'the puzzle',         'головоломку'],
+  ['teacher',   'check',   'the homework',       'домашнее задание'],
+  ['i',         'call',    'my brother',         'своему брату'],
+  ['guests',    'drink',   'coffee',             'кофе'],
+  ['boss',      'send',    'the invoice',        'счёт'],
+  ['neighbours','plan',    'a party',            'вечеринку'],
+  ['sister',    'clean',   'her room',           'свою комнату'],
+  ['girls',     'draw',    'a poster',           'плакат'],
+  ['max',       'fix',     'the printer',        'принтер'],
+  ['mother',    'visit',   'the doctor',         'врача'],
+  ['engineer',  'build',   'a bridge',           'мост'],
+  ['you',       'open',    'the door',           'дверь'],
+  ['he',        'wash',    'the dishes',         'посуду'],
+  ['they',      'finish',  'the project',        'проект'],
+  ['engineer',  'check',   'the drawings',       'чертежи'],
+  ['we',        'invite',  'the whole team',     'всю команду']
+];
+
+/* Passive and conditional sentences are written out as pairs: their Russian
+   equivalents restructure the clause rather than swapping a verb form. */
+const passiveBank = [
+  [ ['The report is checked by the manager every morning.','Отчёт проверяется менеджером каждое утро.'],
+    ['Dinner is cooked by the chef every evening.','Ужин готовится шеф-поваром каждый вечер.'],
+    ['The room is cleaned by the staff every day.','Комната убирается персоналом каждый день.'],
+    ['English is taught by our teacher on Mondays.','Английский преподаётся нашим учителем по понедельникам.'],
+    ['The bread is baked by the baker every night.','Хлеб выпекается пекарем каждую ночь.'],
+    ['The letters are sorted by the postman every morning.','Письма сортируются почтальоном каждое утро.'],
+    ['The garden is watered by my father every evening.','Сад поливается моим отцом каждый вечер.'],
+    ['These forms are signed by the director every week.','Эти бланки подписываются директором каждую неделю.'],
+    ['The shelves are filled by the staff every morning.','Полки заполняются персоналом каждое утро.'],
+    ['The bills are paid by my mother every month.','Счета оплачиваются моей мамой каждый месяц.'],
+    ['The windows are washed by the cleaner every Friday.','Окна моются уборщицей каждую пятницу.'],
+    ['The tickets are booked by my sister every summer.','Билеты бронируются моей сестрой каждое лето.'] ],
+
+  [ ['The report was checked by the manager yesterday.','Отчёт был проверен менеджером вчера.'],
+    ['Dinner was cooked by the chef last night.','Ужин был приготовлен шеф-поваром вчера вечером.'],
+    ['The room was cleaned by the staff yesterday.','Комната была убрана персоналом вчера.'],
+    ['The letter was sent by Anna in the morning.','Письмо было отправлено Анной утром.'],
+    ['The bridge was built by the engineers in 1998.','Мост был построен инженерами в 1998 году.'],
+    ['The keys were lost by my brother on Sunday.','Ключи были потеряны моим братом в воскресенье.'],
+    ['The photos were taken by David last summer.','Фотографии были сделаны Дэвидом прошлым летом.'],
+    ['The fence was painted by the neighbours last week.','Забор был покрашен соседями на прошлой неделе.'],
+    ['The problem was solved by the students quickly.','Задача была решена студентами быстро.'],
+    ['The table was booked by Kate an hour ago.','Столик был забронирован Катей час назад.'],
+    ['The invoice was paid by the company on Friday.','Счёт был оплачен компанией в пятницу.'],
+    ['The rule was explained by the teacher twice.','Правило было объяснено учительницей дважды.'] ],
+
+  [ ['The report has already been checked by the manager.','Отчёт уже проверен менеджером.'],
+    ['Dinner has already been cooked by the chef.','Ужин уже приготовлен шеф-поваром.'],
+    ['The room has already been cleaned by the staff.','Комната уже убрана персоналом.'],
+    ['The letter has already been sent by Anna.','Письмо уже отправлено Анной.'],
+    ['The documents have already been signed by the director.','Документы уже подписаны директором.'],
+    ['The table has already been booked by Kate.','Столик уже забронирован Катей.'],
+    ['The homework has already been checked by the teacher.','Домашнее задание уже проверено учительницей.'],
+    ['The fence has already been painted by my brother.','Забор уже покрашен моим братом.'],
+    ['The invitations have already been written by us.','Приглашения уже написаны нами.'],
+    ['The old sofa has already been sold by my mother.','Старый диван уже продан моей мамой.'],
+    ['The windows have already been washed by the cleaner.','Окна уже вымыты уборщицей.'],
+    ['The project has already been finished by the team.','Проект уже завершён командой.'] ],
+
+  [ ['The report will be checked by the manager tomorrow.','Отчёт будет проверен менеджером завтра.'],
+    ['Dinner will be cooked by the chef tonight.','Ужин будет приготовлен шеф-поваром сегодня вечером.'],
+    ['The room will be cleaned by the staff tomorrow.','Комната будет убрана персоналом завтра.'],
+    ['The letter will be sent by Anna next week.','Письмо будет отправлено Анной на следующей неделе.'],
+    ['The bridge will be built by the engineers next year.','Мост будет построен инженерами в следующем году.'],
+    ['The invoice will be paid by the company on Monday.','Счёт будет оплачен компанией в понедельник.'],
+    ['The topic will be chosen by the students on Friday.','Тема будет выбрана студентами в пятницу.'],
+    ['The tickets will be booked by my sister in May.','Билеты будут забронированы моей сестрой в мае.'],
+    ['The rule will be explained by the teacher again.','Правило будет объяснено учительницей снова.'],
+    ['The keys will be brought by my friend in an hour.','Ключи будут принесены моим другом через час.'],
+    ['The windows will be washed by the cleaner on Friday.','Окна будут вымыты уборщицей в пятницу.'],
+    ['The project will be finished by the team in June.','Проект будет завершён командой в июне.'] ]
+];
+
+const conditionalBank = [
+  [ ['If water reaches 100 degrees, it boils.','Если вода достигает 100 градусов, она закипает.'],
+    ['If people do not sleep, they feel tired.','Если люди не спят, они чувствуют усталость.'],
+    ['If I drink coffee late, I do not sleep well.','Если я пью кофе поздно, я плохо сплю.'],
+    ['If the sun sets, it gets dark.','Если солнце садится, становится темно.'],
+    ['If you heat ice, it melts.','Если нагреть лёд, он тает.'],
+    ['If children eat well, they grow quickly.','Если дети хорошо едят, они быстро растут.'],
+    ['If it rains, the streets get wet.','Если идёт дождь, улицы становятся мокрыми.'],
+    ['If you press this button, the light goes on.','Если нажать эту кнопку, свет включается.'],
+    ['If plants get no water, they die.','Если растения не получают воду, они погибают.'],
+    ['If the wind blows, the windows rattle.','Если дует ветер, окна дребезжат.'],
+    ['If we work together, everything goes faster.','Если мы работаем вместе, всё идёт быстрее.'],
+    ['If the shop closes early, we buy nothing.','Если магазин закрывается рано, мы ничего не покупаем.'] ],
+
+  [ ['If it rains tomorrow, we will stay at home.','Если завтра пойдёт дождь, мы останемся дома.'],
+    ['If she calls me, I will answer.','Если она позвонит мне, я отвечу.'],
+    ['If they finish early, they will join us.','Если они закончат раньше, они присоединятся к нам.'],
+    ['If you study tonight, you will pass the test.','Если ты позанимаешься вечером, ты сдашь тест.'],
+    ['If the bus is late, we will take a taxi.','Если автобус опоздает, мы возьмём такси.'],
+    ['If Anna books a table, we will have dinner there.','Если Анна забронирует столик, мы поужинаем там.'],
+    ['If the weather is good, the children will play outside.','Если погода будет хорошей, дети будут играть на улице.'],
+    ['If my brother fixes the bike, I will ride to work.','Если мой брат починит велосипед, я поеду на работу.'],
+    ['If you help me, we will finish the project today.','Если ты поможешь мне, мы закончим проект сегодня.'],
+    ['If the shop is open, I will buy fresh bread.','Если магазин будет открыт, я куплю свежий хлеб.'],
+    ['If they invite us, we will bring a cake.','Если они пригласят нас, мы принесём торт.'],
+    ['If the doctor is free, he will check the patient.','Если доктор будет свободен, он осмотрит пациента.'] ],
+
+  [ ['If I had more time, I would learn Spanish.','Если бы у меня было больше времени, я бы учил испанский.'],
+    ['If she lived closer, she would visit us more often.','Если бы она жила ближе, она бы навещала нас чаще.'],
+    ['If we had a car, we would travel more.','Если бы у нас была машина, мы бы больше путешествовали.'],
+    ['If he knew the answer, he would tell us.','Если бы он знал ответ, он бы сказал нам.'],
+    ['If I were you, I would talk to the teacher.','На твоём месте я бы поговорил с учительницей.'],
+    ['If they had a bigger flat, they would invite everyone.','Если бы у них была квартира побольше, они бы пригласили всех.'],
+    ['If the weather were warmer, the children would swim.','Если бы погода была теплее, дети бы плавали.'],
+    ['If my friend spoke English, he would work abroad.','Если бы мой друг говорил по-английски, он бы работал за границей.'],
+    ['If I lived in Paris, I would draw every day.','Если бы я жил в Париже, я бы рисовал каждый день.'],
+    ['If she had a piano, she would play in the evenings.','Если бы у неё было пианино, она бы играла по вечерам.'],
+    ['If we knew the way, we would not use the map.','Если бы мы знали дорогу, мы бы не пользовались картой.'],
+    ['If the tickets were cheaper, my parents would fly home.','Если бы билеты были дешевле, мои родители полетели бы домой.'] ],
+
+  [ ['If she had left earlier, she would have caught the train.','Если бы она вышла раньше, она бы успела на поезд.'],
+    ['If I had known about the meeting, I would have come.','Если бы я знал о встрече, я бы пришёл.'],
+    ['If they had studied more, they would have passed the exam.','Если бы они больше занимались, они бы сдали экзамен.'],
+    ['If we had booked a table, we would have eaten there.','Если бы мы забронировали столик, мы бы поужинали там.'],
+    ['If he had asked me, I would have helped him.','Если бы он попросил меня, я бы помог ему.'],
+    ['If the shop had been open, I would have bought bread.','Если бы магазин был открыт, я бы купил хлеб.'],
+    ['If you had called me, I would have answered.','Если бы ты позвонил мне, я бы ответил.'],
+    ['If it had not rained, the children would have played outside.','Если бы не было дождя, дети играли бы на улице.'],
+    ['If my brother had fixed the bike, I would have ridden to work.','Если бы мой брат починил велосипед, я бы поехал на работу.'],
+    ['If they had invited us, we would have brought a cake.','Если бы они пригласили нас, мы бы принесли торт.'],
+    ['If the team had worked faster, they would have finished the project.','Если бы команда работала быстрее, они бы закончили проект.'],
+    ['If she had taken the map, she would have found the house.','Если бы она взяла карту, она бы нашла дом.'] ]
 ];
 let selected = 0, current = 0, built = [], ordered = [], attempts = 0, right = 0, wrong = 0, hintStep = 0, activeExercise = null;
 const allTenses = tenseGroups.flatMap(([,t])=>t);
@@ -70,59 +448,143 @@ function todayCorrect(){return profile.completions[dayKey()] || 0}
 function currentStreak(){let days=0;while(profile.completions[dayKey(-days)]>0) days++;return days}
 function saveProfile(){localStorage.setItem('tenselab-profile',JSON.stringify(profile))}
 function recordCorrect(){const key=dayKey();profile.completions[key]=(profile.completions[key]||0)+1;profile.totalXP+=10;saveProfile()}
-function isThird(s){return !['I','You','We','They','The children','The students','My parents'].includes(s)}
-function simpleVerb(x){return isThird(x[0]) ? (x[2].endsWith('y') ? x[2].slice(0,-1)+'ies' : x[2]+(x[2].endsWith('s')||x[2].endsWith('x')?'es':'s')) : x[2]}
-function pronounFor(subject){return ({I:'I',You:'you',He:'he',She:'she',We:'we',They:'they','My brother':'he',Anna:'she','The children':'they','Our team':'it','My friend':'he','The students':'they',Kate:'she','The cat':'it',David:'he','My parents':'they','The doctor':'he'})[subject]||'they'}
-function titleCase(text){return text.charAt(0).toUpperCase()+text.slice(1)}
-function addDistractors(tense,x,correct){const s=x[0],v=x[2],p=x[3],pp=x[4],ing=x[5],beNow=isThird(s)?'is':s==='I'?'am':'are',bePast=isThird(s)?'was':'were',have=isThird(s)?'has':'have';const choices={
-  'Present Simple':[beNow,ing,have,pp], 'Present Continuous':[simpleVerb(x),have,pp], 'Present Perfect':[simpleVerb(x),beNow,ing], 'Present Perfect Continuous':[simpleVerb(x),beNow,pp],
-  'Past Simple':[bePast,ing,'had',pp], 'Past Continuous':[p,'had',pp], 'Past Perfect':[p,bePast,ing], 'Past Perfect Continuous':[p,bePast,ing],
-  'Future Simple':['would','be',ing], 'Future Continuous':['have',pp,v], 'Future Perfect':['be',ing,v], 'Future Perfect Continuous':['be',ing,v],
-  'Future in the Past Simple':['will',v,'has',pp], 'Future in the Past Continuous':['will','be',ing], 'Future in the Past Perfect':['will','have',pp], 'Future in the Past Perfect Continuous':['will','be',ing]
-}[tense]||['is','was','will','have'];return [...new Set(choices.filter(word=>!correct.includes(word)))].slice(0,4)}
-function sentenceFor(index,n){
-  const tense=allTenses[index][0],x=subjects[n],s=x[0],v=x[2],p=x[3],pp=x[4],ing=x[5],o=x[6],ruO=x[7],beNow=isThird(s)?'is':s==='I'?'am':'are',bePast=isThird(s)?'was':'were',have=isThird(s)?'has':'have',ruS=titleCase(x[1]),pronoun=pronounFor(s);
-  let answer,translation;
-  const core={
-    'Present Simple':()=>[`${s} ${simpleVerb(x)} ${o} every morning.`,`Каждое утро ${x[1]} ${ruVerb(x)} ${ruO}.`],
-    'Present Continuous':()=>[`${s} ${beNow} ${ing} ${o} right now.`,`Сейчас ${x[1]} ${ruVerb(x)} ${ruO}.`],
-    'Present Perfect':()=>[`${s} ${have} ${pp} ${o} already.`,`${ruS} уже ${ruVerbPast(x)} ${ruO}.`],
-    'Present Perfect Continuous':()=>[`${s} ${have} been ${ing} ${o} for two hours.`,`${ruS} ${ruVerb(x)} ${ruO} уже два часа.`],
-    'Past Simple':()=>[`${s} ${p} ${o} yesterday.`,`Вчера ${x[1]} ${ruVerbPast(x)} ${ruO}.`],
-    'Past Continuous':()=>[`${s} ${bePast} ${ing} ${o} at 6 pm.`,`В шесть вечера ${x[1]} ${ruVerb(x)} ${ruO}.`],
-    'Past Perfect':()=>[`${s} had ${pp} ${o} before the meeting.`,`${ruS} уже ${ruVerbPast(x)} ${ruO} до встречи.`],
-    'Past Perfect Continuous':()=>[`${s} had been ${ing} ${o} for two hours before the meeting.`,`${ruS} ${ruVerb(x)} ${ruO} два часа до встречи.`],
-    'Future Simple':()=>[`${s} will ${v} ${o} tomorrow.`,`Завтра ${x[1]} ${ruVerbFuture(x)} ${ruO}.`],
-    'Future Continuous':()=>[`${s} will be ${ing} ${o} at this time tomorrow.`,`Завтра в это время ${x[1]} будет ${ruVerb(x)} ${ruO}.`],
-    'Future Perfect':()=>[`${s} will have ${pp} ${o} by Friday.`,`К пятнице ${x[1]} уже ${ruVerbFuture(x)} ${ruO}.`],
-    'Future Perfect Continuous':()=>[`${s} will have been ${ing} ${o} for two hours by Friday.`,`К пятнице ${x[1]} будет ${ruVerb(x)} ${ruO} уже два часа.`],
-    'Future in the Past Simple':()=>[`Yesterday, ${s} said that ${pronoun} would ${v} ${o} the next day.`,`Вчера ${x[1]} сказал(а), что на следующий день ${ruVerbFuture(x)} ${ruO}.`],
-    'Future in the Past Continuous':()=>[`Yesterday, ${s} knew that ${pronoun} would be ${ing} ${o} at that time the next day.`,`Вчера ${x[1]} знал(а), что на следующий день будет ${ruVerb(x)} ${ruO}.`],
-    'Future in the Past Perfect':()=>[`Yesterday, ${s} thought that ${pronoun} would have ${pp} ${o} by Friday.`,`Вчера ${x[1]} думал(а), что к пятнице уже ${ruVerbFuture(x)} ${ruO}.`],
-    'Future in the Past Perfect Continuous':()=>[`Yesterday, ${s} expected that ${pronoun} would have been ${ing} ${o} for two hours by then.`,`Вчера ${x[1]} ожидал(а), что к тому времени будет ${ruVerb(x)} ${ruO} два часа.`]
-  };
-  const passive=[
-    [['The report is checked by the manager every morning.','Отчёт проверяют каждое утро.'],['Dinner is cooked by the chef every evening.','Ужин готовят каждый вечер.'],['The room is cleaned by the staff every day.','Комнату убирают каждый день.'],['English is taught by our teacher on Mondays.','Английский преподаёт наш учитель по понедельникам.']],
-    [['The report was checked by the manager yesterday.','Отчёт проверили вчера.'],['Dinner was cooked by the chef last night.','Ужин приготовили прошлой ночью.'],['The room was cleaned by the staff yesterday.','Комнату убрали вчера.'],['The letter was sent by Anna in the morning.','Анна отправила письмо утром.']],
-    [['The report has already been checked by the manager.','Менеджер уже проверил отчёт.'],['Dinner has already been cooked by the chef.','Повар уже приготовил ужин.'],['The room has already been cleaned by the staff.','Сотрудники уже убрали комнату.'],['The letter has already been sent by Anna.','Анна уже отправила письмо.']],
-    [['The report will be checked by the manager tomorrow.','Менеджер проверит отчёт завтра.'],['Dinner will be cooked by the chef tonight.','Повар приготовит ужин сегодня вечером.'],['The room will be cleaned by the staff tomorrow.','Сотрудники уберут комнату завтра.'],['The letter will be sent by Anna next week.','Анна отправит письмо на следующей неделе.']]
-  ];
-  const conditionals=[
-    [['If water reaches 100 degrees, it boils.','Если вода достигает 100 градусов, она закипает.'],['If people do not sleep, they feel tired.','Если люди не спят, они чувствуют усталость.'],['If I drink coffee late, I cannot sleep.','Если я пью кофе поздно, я не могу уснуть.'],['If the sun sets, it gets dark.','Если солнце садится, темнеет.']],
-    [['If it rains tomorrow, we will stay at home.','Если завтра пойдёт дождь, мы останемся дома.'],['If she calls me, I will answer.','Если она позвонит мне, я отвечу.'],['If they finish early, they will join us.','Если они закончат раньше, они присоединятся к нам.'],['If you study tonight, you will pass the test.','Если ты позанимаешься вечером, ты сдашь тест.']],
-    [['If I had more time, I would learn Spanish.','Если бы у меня было больше времени, я бы учил испанский.'],['If she lived closer, she would visit us more often.','Если бы она жила ближе, она бы чаще нас навещала.'],['If we had a car, we would travel more.','Если бы у нас была машина, мы бы больше путешествовали.'],['If he knew the answer, he would tell us.','Если бы он знал ответ, он бы нам сказал.']],
-    [['If she had left earlier, she would have caught the train.','Если бы она вышла раньше, она бы успела на поезд.'],['If I had known about the meeting, I would have come.','Если бы я знал о встрече, я бы пришёл.'],['If they had studied more, they would have passed the exam.','Если бы они больше учились, они бы сдали экзамен.'],['If we had booked a table, we would have eaten there.','Если бы мы забронировали столик, мы бы поели там.']]
-  ];
-  if(core[tense])[answer,translation]=core[tense]();else if(index>=16&&index<20)[answer,translation]=passive[index-16][n%4];else [answer,translation]=conditionals[index-20][n%4];
-  const tokens=answer.replace(/[.,]/g,'').split(' ');return {answer,translation,tokens,distractors:addDistractors(tense,x,tokens)};
+function titleCase(text) { return text.charAt(0).toUpperCase() + text.slice(1) }
+
+function thirdPerson(verb) {
+  if (/[^aeiou]y$/.test(verb)) return verb.slice(0, -1) + 'ies';
+  if (/(s|x|z|ch|sh|o)$/.test(verb)) return verb + 'es';
+  return verb + 's';
 }
-function ruVerb(x){const third={write:'пишет',read:'читает',cook:'готовит',drink:'пьёт',watch:'смотрит',play:'играет',fix:'чинит',learn:'изучает',build:'строит',plan:'планирует',buy:'покупает',solve:'решает',call:'звонит',sleep:'спит',send:'отправляет',visit:'посещает',check:'осматривает',prepare:'готовит',draw:'рисует',meet:'встречает'};const first={write:'пишу',read:'читаю',cook:'готовлю',drink:'пью',watch:'смотрю',play:'играю',fix:'чиню',learn:'изучаю',build:'строю',plan:'планирую',buy:'покупаю',solve:'решаю',call:'звоню',sleep:'сплю',send:'отправляю',visit:'посещаю',check:'осматриваю',prepare:'готовлю',draw:'рисую',meet:'встречаю'};const second={write:'пишешь',read:'читаешь',cook:'готовишь',drink:'пьёшь',watch:'смотришь',play:'играешь',fix:'чинишь',learn:'изучаешь',build:'строишь',plan:'планируешь',buy:'покупаешь',solve:'решаешь',call:'звонишь',sleep:'спишь',send:'отправляешь',visit:'посещаешь',check:'осматриваешь',prepare:'готовишь',draw:'рисуешь',meet:'встречаешь'};const plural={write:'пишем',read:'читаем',cook:'готовим',drink:'пьём',watch:'смотрим',play:'играем',fix:'чиним',learn:'изучаем',build:'строим',plan:'планируем',buy:'покупаем',solve:'решаем',call:'звоним',sleep:'спим',send:'отправляем',visit:'посещаем',check:'осматриваем',prepare:'готовим',draw:'рисуем',meet:'встречаем'};return (x[1]==='я'?first:x[1]==='ты'?second:['мы','они','дети','мои родители','студенты'].includes(x[1])?plural:third)[x[2]]}
-function ruVerbPast(x){return ({write:'написал(а)',read:'прочитал(а)',cook:'приготовил(а)',drink:'выпил(а)',watch:'посмотрел(а)',play:'сыграл(а)',fix:'починил(а)',learn:'выучил(а)',build:'построил(а)',plan:'спланировал(а)',buy:'купил(а)',solve:'решил(а)',call:'позвонил(а)',sleep:'спал(а)',send:'отправил(а)',visit:'посетил(а)',check:'осмотрел(а)',prepare:'приготовил(а)',draw:'нарисовал(а)',meet:'встретил(а)'})[x[2]]}
-function ruVerbFuture(x){const forms={write:['напишу','напишешь','напишет','напишем','напишут'],read:['прочитаю','прочитаешь','прочитает','прочитаем','прочитают'],cook:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],drink:['выпью','выпьешь','выпьет','выпьем','выпьют'],watch:['посмотрю','посмотришь','посмотрит','посмотрим','посмотрят'],play:['сыграю','сыграешь','сыграет','сыграем','сыграют'],fix:['починю','починишь','починит','починим','починят'],learn:['изучу','изучишь','изучит','изучим','изучат'],build:['построю','построишь','построит','построим','построят'],plan:['спланирую','спланируешь','спланирует','спланируем','спланируют'],buy:['куплю','купишь','купит','купим','купят'],solve:['решу','решишь','решит','решим','решат'],call:['позвоню','позвонишь','позвонит','позвоним','позвонят'],sleep:['посплю','поспишь','поспит','поспим','поспят'],send:['отправлю','отправишь','отправит','отправим','отправят'],visit:['посещу','посетишь','посетит','посетим','посетят'],check:['осмотрю','осмотришь','осмотрит','осмотрим','осмотрят'],prepare:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],draw:['нарисую','нарисуешь','нарисует','нарисуем','нарисуют'],meet:['встречу','встретишь','встретит','встретим','встретят']};const person=x[1]==='я'?0:x[1]==='ты'?1:['мы'].includes(x[1])?3:['они','дети','мои родители','студенты'].includes(x[1])?4:2;return forms[x[2]][person]} function ruVerbFuturePast(x){return ruVerbFuture(x)}
+
+/* English agreement: only the "s" pattern takes the third-person -s, and only
+   "I" pairs am/was with a bare verb. */
+function englishForms(who) {
+  const third = who.agr === 's';
+  return {
+    third,
+    be: who.agr === 'i' ? 'am' : third ? 'is' : 'are',
+    bePast: who.agr === 'i' || third ? 'was' : 'were',
+    have: third ? 'has' : 'have'
+  };
+}
+
+const pastSlot = { m: 0, f: 1, n: 2, pl: 3, x: 4 };
+function ruPast(table, who) { return table[pastSlot[who.gender]] }
+function ruConjugate(table, who) { return table[who.slot] }
+
+function distractorsFor(tense, who, key, correct) {
+  const verb = verbs[key], en = englishForms(who);
+  const third = en.third ? thirdPerson(key) : key;
+  const pool = {
+    'Present Simple': [en.be, verb.ing, en.have, verb.pp],
+    'Present Continuous': [third, en.have, verb.pp],
+    'Present Perfect': [third, en.be, verb.ing],
+    'Present Perfect Continuous': [third, en.be, verb.pp],
+    'Past Simple': [en.bePast, verb.ing, 'had', verb.pp],
+    'Past Continuous': [verb.past, 'had', verb.pp],
+    'Past Perfect': [verb.past, en.bePast, verb.ing],
+    'Past Perfect Continuous': [verb.past, en.bePast, verb.ing],
+    'Future Simple': ['would', 'be', verb.ing],
+    'Future Continuous': ['have', verb.pp, key],
+    'Future Perfect': ['be', verb.ing, key],
+    'Future Perfect Continuous': ['be', verb.ing, key],
+    'Future in the Past Simple': ['will', key, 'has', verb.pp],
+    'Future in the Past Continuous': ['will', 'be', verb.ing],
+    'Future in the Past Perfect': ['will', 'have', verb.pp],
+    'Future in the Past Perfect Continuous': ['will', 'be', verb.ing]
+  }[tense] || ['is', 'was', 'will', 'have'];
+  return [...new Set(pool.filter(word => !correct.includes(word)))].slice(0, 4);
+}
+
+function sentenceFor(index, n) {
+  const tense = allTenses[index][0];
+  const scenario = bank[n % bank.length];
+  const who = people[scenario[0]], key = scenario[1], obj = scenario[2], objRu = scenario[3];
+  const verb = verbs[key], en = englishForms(who);
+  let answer, translation;
+
+  if (index >= 16 && index < 20) {
+    const list = passiveBank[index - 16];
+    [answer, translation] = list[n % list.length];
+  } else if (index >= 20) {
+    const list = conditionalBank[index - 20];
+    [answer, translation] = list[n % list.length];
+  } else {
+    const s = who.en, low = who.low, pron = who.pron;
+    const v = en.third ? thirdPerson(key) : key;
+    /* Russian: `now` is the imperfective present, `was` the imperfective past
+       (continuous), `did` the perfective past (completed), `will` the
+       perfective future. `willBe + infinitive` builds the imperfective future. */
+    const ru = who.ru, Ru = titleCase(who.ru);
+    const now = ruConjugate(verb.pres, who);
+    const was = ruPast(verb.impf, who);
+    const did = ruPast(verb.perf, who);
+    const will = ruConjugate(verb.fut, who);
+    const shall = willBe[who.slot] + ' ' + verb.inf;
+    const said = ruPast(reporting.say, who);
+    const knew = ruPast(reporting.know, who);
+    const thought = ruPast(reporting.think, who);
+    const expected = ruPast(reporting.expect, who);
+
+    [answer, translation] = {
+      'Present Simple': [
+        `${s} ${v} ${obj} every morning.`,
+        `Каждое утро ${ru} ${now} ${objRu}.`],
+      'Present Continuous': [
+        `${s} ${en.be} ${verb.ing} ${obj} right now.`,
+        `Сейчас ${ru} ${now} ${objRu}.`],
+      'Present Perfect': [
+        `${s} ${en.have} ${verb.pp} ${obj} already.`,
+        `${Ru} уже ${did} ${objRu}.`],
+      'Present Perfect Continuous': [
+        `${s} ${en.have} been ${verb.ing} ${obj} for two hours.`,
+        `${Ru} ${now} ${objRu} уже два часа.`],
+      'Past Simple': [
+        `${s} ${verb.past} ${obj} yesterday.`,
+        `Вчера ${ru} ${did} ${objRu}.`],
+      'Past Continuous': [
+        `${s} ${en.bePast} ${verb.ing} ${obj} at 6 pm.`,
+        `В шесть вечера ${ru} ${was} ${objRu}.`],
+      'Past Perfect': [
+        `${s} had ${verb.pp} ${obj} before the meeting.`,
+        `${Ru} ${did} ${objRu} до встречи.`],
+      'Past Perfect Continuous': [
+        `${s} had been ${verb.ing} ${obj} for two hours before the meeting.`,
+        `${Ru} ${was} ${objRu} два часа до встречи.`],
+      'Future Simple': [
+        `${s} will ${key} ${obj} tomorrow.`,
+        `Завтра ${ru} ${will} ${objRu}.`],
+      'Future Continuous': [
+        `${s} will be ${verb.ing} ${obj} at this time tomorrow.`,
+        `Завтра в это время ${ru} ${shall} ${objRu}.`],
+      'Future Perfect': [
+        `${s} will have ${verb.pp} ${obj} by Friday.`,
+        `К пятнице ${ru} уже ${will} ${objRu}.`],
+      'Future Perfect Continuous': [
+        `${s} will have been ${verb.ing} ${obj} for two hours by Friday.`,
+        `К пятнице ${ru} ${shall} ${objRu} уже два часа.`],
+      'Future in the Past Simple': [
+        `Yesterday, ${low} said that ${pron} would ${key} ${obj} the next day.`,
+        `Вчера ${ru} ${said}, что на следующий день ${will} ${objRu}.`],
+      'Future in the Past Continuous': [
+        `Yesterday, ${low} knew that ${pron} would be ${verb.ing} ${obj} at that time the next day.`,
+        `Вчера ${ru} ${knew}, что на следующий день ${shall} ${objRu}.`],
+      'Future in the Past Perfect': [
+        `Yesterday, ${low} thought that ${pron} would have ${verb.pp} ${obj} by Friday.`,
+        `Вчера ${ru} ${thought}, что к пятнице уже ${will} ${objRu}.`],
+      'Future in the Past Perfect Continuous': [
+        `Yesterday, ${low} expected that ${pron} would have been ${verb.ing} ${obj} for two hours by then.`,
+        `Вчера ${ru} ${expected}, что к тому времени ${shall} ${objRu} уже два часа.`]
+    }[tense];
+  }
+
+  const tokens = answer.replace(/[.,]/g, '').split(' ');
+  return { answer, translation, tokens, distractors: distractorsFor(tense, who, key, tokens) };
+}
 function renderNav(){let out='';tenseGroups.forEach(([group, items])=>{out+=`<div class="nav-section"><div class="nav-section-title">${group}</div>`;items.forEach(item=>{const i=allTenses.indexOf(item),done=stored[i]?.done;out+=`<button class="tense-link ${i===selected?'active':''} ${done?'done':''}" data-index="${i}"><i class="tense-dot"></i>${item[0].replace('Future in the Past ','F. in Past ')}</button>`});out+='</div>'});$('#tenseList').innerHTML=out;document.querySelectorAll('.tense-link').forEach(b=>b.onclick=()=>switchTense(+b.dataset.index));$('#courseProgress').textContent=`${Object.values(stored).filter(x=>x.done).length} / 24`}
 function switchTense(i){selected=i;current=stored[i]?.position||0;built=[];hintStep=0;activeExercise=null;renderNav();renderLesson();closeDrawer()}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
-function currentExercise(){if(!activeExercise)activeExercise=sentenceFor(selected,Math.floor(Math.random()*subjects.length));return activeExercise}
+function currentExercise(){if(!activeExercise)activeExercise=sentenceFor(selected,Math.floor(Math.random()*bank.length));return activeExercise}
 function renderLesson(){const t=allTenses[selected], ex=currentExercise();ordered=shuffle([...ex.tokens,...ex.distractors]);built=[];hintStep=0;$('#tenseTitle').textContent=t[0];$('#crumbTense').textContent=t[0];$('#tenseDescription').textContent=t[1];$('#difficultyBadge').textContent=t[2];$('#translation').textContent=ex.translation;$('#taskNumber').textContent=String(current+1).padStart(2,'0');const pct=Math.round(current/20*100);$('#progressFill').style.width=pct+'%';$('#percentProgress').textContent=pct+'%';$('#progressBar').setAttribute('aria-valuenow',pct);$('#trainerCard').classList.remove('success-card');$('#answerZone').classList.remove('shake');clearFeedback();renderWords();renderAnswer();updateStats()}
 function renderWords(){const ex=currentExercise();$('#wordBank').innerHTML=ordered.map((word,i)=>`<button class="word ${built.includes(i)?'used':''}" data-i="${i}">${word}</button>`).join('');document.querySelectorAll('.word').forEach(b=>b.onclick=()=>{built.push(+b.dataset.i);renderWords();renderAnswer();clearFeedback()})}
 function renderAnswer(){const z=$('#answerZone');if(!built.length){z.innerHTML='<span class="answer-placeholder">Нажимайте на слова ниже</span>';z.classList.remove('has-answer');return}z.classList.add('has-answer');z.innerHTML=built.map((i,k)=>`<button class="answer-token" data-k="${k}">${ordered[i]}</button>`).join('');document.querySelectorAll('.answer-token').forEach(b=>b.onclick=()=>{built.splice(+b.dataset.k,1);renderWords();renderAnswer()})}
@@ -252,6 +714,43 @@ wideLayout.addEventListener('change', syncLayout);
 menuButton.onclick = () => (drawerOpen ? closeDrawer({ restoreFocus: true }) : openDrawer());
 scrim.onclick = () => closeDrawer({ restoreFocus: true });
 
+/* -- ZoomLock ---------------------------------------------------------------
+   Tapping words quickly reads as a double-tap, and a second finger resting on
+   the word bank reads as a pinch. Either one leaves the viewport scaled with no
+   obvious way back, in a layout that already fits the screen. So the app owns
+   its scale. Text still scales: every dimension in the stylesheet is relative,
+   so the OS and browser font-size settings work as before. */
+function installZoomLock() {
+  const block = event => event.preventDefault();
+
+  /* WebKit pinch gestures never surface as touch events. */
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+    document.addEventListener(type, block, { passive: false });
+  }
+  document.addEventListener('dblclick', block, { passive: false });
+  document.addEventListener('touchstart', event => {
+    if (event.touches.length > 1) event.preventDefault();
+  }, { passive: false });
+
+  let lastTap = 0, lastX = 0, lastY = 0;
+  document.addEventListener('touchend', event => {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    const nearby = Math.abs(touch.clientX - lastX) < 30 && Math.abs(touch.clientY - lastY) < 30;
+    /* Two quick taps in one spot is the zoom gesture. Two quick taps on
+       different words is just fast play, and has to keep its click. Controls
+       are exempt outright — touch-action already covers them. */
+    if (event.timeStamp - lastTap < 320 && nearby && !event.target.closest('button, a, input')) {
+      event.preventDefault();
+    }
+    lastTap = event.timeStamp;
+    lastX = touch.clientX;
+    lastY = touch.clientY;
+  }, { passive: false });
+
+  document.documentElement.classList.add('zoom-locked');
+}
+
 /* -- Dialogs --------------------------------------------------------------- */
 
 let lastFocused = null;
@@ -372,6 +871,7 @@ if ('serviceWorker' in navigator) {
 }
 
 scrim.hidden = false;
+installZoomLock();
 syncLayout();
 syncGoalOptions();
 renderNav();

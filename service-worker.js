@@ -1,4 +1,4 @@
-const VERSION = 'tenselab-v4';
+const VERSION = 'tenselab-v5';
 const SHELL = [
   './',
   './index.html',
