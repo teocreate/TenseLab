@@ -59,7 +59,6 @@ const subjects = [
   ['She','она','draw','drew','drawn','drawing','a beautiful picture','красивую картину','her teacher'],
   ['We','мы','meet','met','met','meeting','at the station','на станции','our colleagues']
 ];
-const timeMarkers = ['every morning','right now','already','for two hours','yesterday','at 6 pm','before the meeting','since Monday','tomorrow','at this time tomorrow','by Friday','for three years','the next day','at that time','by the following week','for two hours by then','every day','last night','recently','next month'];
 let selected = 0, current = 0, built = [], ordered = [], attempts = 0, right = 0, wrong = 0, hintStep = 0, activeExercise = null;
 const allTenses = tenseGroups.flatMap(([,t])=>t);
 const stored = JSON.parse(localStorage.getItem('tenselab-progress') || '{}');
@@ -73,32 +72,6 @@ function saveProfile(){localStorage.setItem('tenselab-profile',JSON.stringify(pr
 function recordCorrect(){const key=dayKey();profile.completions[key]=(profile.completions[key]||0)+1;profile.totalXP+=10;saveProfile()}
 function isThird(s){return !['I','You','We','They','The children','The students','My parents'].includes(s)}
 function simpleVerb(x){return isThird(x[0]) ? (x[2].endsWith('y') ? x[2].slice(0,-1)+'ies' : x[2]+(x[2].endsWith('s')||x[2].endsWith('x')?'es':'s')) : x[2]}
-function sentenceFor(index, n){
-  const t = allTenses[index][0], x=subjects[n], marker=timeMarkers[n]; const s=x[0], v=x[2], p=x[3], pp=x[4], ing=x[5], o=x[6];
-  const beNow=isThird(s)?'is':(['I'].includes(s)?'am':'are'), bePast=isThird(s)?'was':'were', have=isThird(s)?'has':'have';
-  let words=[], ru='';
-  const core = {
-    'Present Simple':()=>[`${s} ${simpleVerb(x)} ${o} ${marker}.`,`[${x[1]}] ${ruVerb(x)} ${x[7]} ${markerRu(marker)}.`],
-    'Present Continuous':()=>[`${s} ${beNow} ${ing} ${o} ${marker}.`,`[${x[1]}] сейчас ${ruVerb(x)} ${x[7]}.`],
-    'Present Perfect':()=>[`${s} ${have} ${pp} ${o} ${marker}.`,`[${x[1]}] уже ${ruVerbPast(x)} ${x[7]}.`],
-    'Present Perfect Continuous':()=>[`${s} ${have} been ${ing} ${o} ${marker}.`,`[${x[1]}] ${ruVerb(x)} ${x[7]} уже два часа.`],
-    'Past Simple':()=>[`${s} ${p} ${o} ${marker}.`,`Вчера [${x[1]}] ${ruVerbPast(x)} ${x[7]}.`],
-    'Past Continuous':()=>[`${s} ${bePast} ${ing} ${o} ${marker}.`,`В шесть вечера [${x[1]}] ${ruVerb(x)} ${x[7]}.`],
-    'Past Perfect':()=>[`${s} had ${pp} ${o} ${marker}.`,`[${x[1]}] уже ${ruVerbPast(x)} ${x[7]} до встречи.`],
-    'Past Perfect Continuous':()=>[`${s} had been ${ing} ${o} ${marker}.`,`[${x[1]}] ${ruVerb(x)} ${x[7]} уже два часа до встречи.`],
-    'Future Simple':()=>[`${s} will ${v} ${o} ${marker}.`,`Завтра [${x[1]}] ${ruVerbFuture(x)} ${x[7]}.`],
-    'Future Continuous':()=>[`${s} will be ${ing} ${o} ${marker}.`,`В это время завтра [${x[1]}] будет ${ruVerb(x)} ${x[7]}.`],
-    'Future Perfect':()=>[`${s} will have ${pp} ${o} ${marker}.`,`К пятнице [${x[1]}] уже ${ruVerbFuturePast(x)} ${x[7]}.`],
-    'Future Perfect Continuous':()=>[`${s} will have been ${ing} ${o} ${marker}.`,`К тому времени [${x[1]}] будет ${ruVerb(x)} ${x[7]} уже три года.`],
-    'Future in the Past Simple':()=>[`${s} would ${v} ${o} ${marker}.`,`[${x[1]}] сказал(а), что ${ruVerbFuture(x)} ${x[7]}.`],
-    'Future in the Past Continuous':()=>[`${s} would be ${ing} ${o} ${marker}.`,`[${x[1]}] знал(а), что будет ${ruVerb(x)} ${x[7]}.`],
-    'Future in the Past Perfect':()=>[`${s} would have ${pp} ${o} ${marker}.`,`[${x[1]}] думал(а), что уже ${ruVerbFuturePast(x)} ${x[7]}.`],
-    'Future in the Past Perfect Continuous':()=>[`${s} would have been ${ing} ${o} ${marker}.`,`[${x[1]}] ожидал(а), что будет ${ruVerb(x)} ${x[7]} два часа.`],
-  };
-  if(core[t]) [words,ru]=core[t](); else { const passive = index===16?`${x[6]} ${beNow} ${pp} by ${x[8]} ${marker}.`:index===17?`${x[6]} ${bePast} ${pp} by ${x[8]} ${marker}.`:index===18?`${x[6]} ${have} been ${pp} by ${x[8]} ${marker}.`:`${x[6]} will be ${pp} by ${x[8]} ${marker}.`; words=passive;ru=`${x[7]} ${index===17?'был':'будет'} ${ruVerbPast(x)} ${x[8]}.`; }
-  if(index>=20){const cond=[`If ${s} ${simpleVerb(x)}, ${s} ${simpleVerb(x)} ${o}.`,`If ${s} ${simpleVerb(x)}, ${s} will ${v} ${o}.`,`If ${s} ${p} ${o}, ${s} would ${v} ${o}.`,`If ${s} had ${pp} ${o}, ${s} would have ${pp} ${o}.`][index-20];words=cond;ru=['Если '+x[1]+' '+ruVerb(x)+', '+x[1]+' '+ruVerb(x)+'.','Если '+x[1]+' '+ruVerb(x)+', '+x[1]+' '+ruVerbFuture(x)+'.','Если бы '+x[1]+' '+ruVerbPast(x)+', '+x[1]+' '+ruVerbFuture(x)+'.','Если бы '+x[1]+' '+ruVerbPast(x)+', '+x[1]+' '+ruVerbFuturePast(x)+'.'][index-20]}
-  return {answer:words, translation:ru.replace(/\[(.*?)\]/g,'$1'), tokens:words.replace(/[.]/g,'').split(' ')};
-}
 function pronounFor(subject){return ({I:'I',You:'you',He:'he',She:'she',We:'we',They:'they','My brother':'he',Anna:'she','The children':'they','Our team':'it','My friend':'he','The students':'they',Kate:'she','The cat':'it',David:'he','My parents':'they','The doctor':'he'})[subject]||'they'}
 function titleCase(text){return text.charAt(0).toUpperCase()+text.slice(1)}
 function addDistractors(tense,x,correct){const s=x[0],v=x[2],p=x[3],pp=x[4],ing=x[5],beNow=isThird(s)?'is':s==='I'?'am':'are',bePast=isThird(s)?'was':'were',have=isThird(s)?'has':'have';const choices={
@@ -145,19 +118,261 @@ function sentenceFor(index,n){
 }
 function ruVerb(x){const third={write:'пишет',read:'читает',cook:'готовит',drink:'пьёт',watch:'смотрит',play:'играет',fix:'чинит',learn:'изучает',build:'строит',plan:'планирует',buy:'покупает',solve:'решает',call:'звонит',sleep:'спит',send:'отправляет',visit:'посещает',check:'осматривает',prepare:'готовит',draw:'рисует',meet:'встречает'};const first={write:'пишу',read:'читаю',cook:'готовлю',drink:'пью',watch:'смотрю',play:'играю',fix:'чиню',learn:'изучаю',build:'строю',plan:'планирую',buy:'покупаю',solve:'решаю',call:'звоню',sleep:'сплю',send:'отправляю',visit:'посещаю',check:'осматриваю',prepare:'готовлю',draw:'рисую',meet:'встречаю'};const second={write:'пишешь',read:'читаешь',cook:'готовишь',drink:'пьёшь',watch:'смотришь',play:'играешь',fix:'чинишь',learn:'изучаешь',build:'строишь',plan:'планируешь',buy:'покупаешь',solve:'решаешь',call:'звонишь',sleep:'спишь',send:'отправляешь',visit:'посещаешь',check:'осматриваешь',prepare:'готовишь',draw:'рисуешь',meet:'встречаешь'};const plural={write:'пишем',read:'читаем',cook:'готовим',drink:'пьём',watch:'смотрим',play:'играем',fix:'чиним',learn:'изучаем',build:'строим',plan:'планируем',buy:'покупаем',solve:'решаем',call:'звоним',sleep:'спим',send:'отправляем',visit:'посещаем',check:'осматриваем',prepare:'готовим',draw:'рисуем',meet:'встречаем'};return (x[1]==='я'?first:x[1]==='ты'?second:['мы','они','дети','мои родители','студенты'].includes(x[1])?plural:third)[x[2]]}
 function ruVerbPast(x){return ({write:'написал(а)',read:'прочитал(а)',cook:'приготовил(а)',drink:'выпил(а)',watch:'посмотрел(а)',play:'сыграл(а)',fix:'починил(а)',learn:'выучил(а)',build:'построил(а)',plan:'спланировал(а)',buy:'купил(а)',solve:'решил(а)',call:'позвонил(а)',sleep:'спал(а)',send:'отправил(а)',visit:'посетил(а)',check:'осмотрел(а)',prepare:'приготовил(а)',draw:'нарисовал(а)',meet:'встретил(а)'})[x[2]]}
-function ruVerbFuture(x){const forms={write:['напишу','напишешь','напишет','напишем','напишут'],read:['прочитаю','прочитаешь','прочитает','прочитаем','прочитают'],cook:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],drink:['выпью','выпьешь','выпьет','выпьем','выпьют'],watch:['посмотрю','посмотришь','посмотрит','посмотрим','посмотрят'],play:['сыграю','сыграешь','сыграет','сыграем','сыграют'],fix:['починю','починишь','починит','починим','починят'],learn:['изучу','изучишь','изучит','изучим','изучат'],build:['построю','построишь','построит','построим','построят'],plan:['спланирую','спланируешь','спланирует','спланируем','спланируют'],buy:['куплю','купишь','купит','купим','купят'],solve:['решу','решишь','решит','решим','решат'],call:['позвоню','позвонишь','позвонит','позвоним','позвонят'],sleep:['посплю','поспишь','поспит','поспим','поспят'],send:['отправлю','отправишь','отправит','отправим','отправят'],visit:['посещу','посетишь','посетит','посетим','посетят'],check:['осмотрю','осмотришь','осмотрит','осмотрим','осмотрят'],prepare:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],draw:['нарисую','нарисуешь','нарисует','нарисуем','нарисуют'],meet:['встречу','встретишь','встретит','встретим','встретят']};const person=x[1]==='я'?0:x[1]==='ты'?1:['мы'].includes(x[1])?3:['они','дети','мои родители','студенты'].includes(x[1])?4:2;return forms[x[2]][person]} function ruVerbFuturePast(x){return ruVerbFuture(x)} function markerRu(m){return m==='every morning'?'каждое утро':''}
+function ruVerbFuture(x){const forms={write:['напишу','напишешь','напишет','напишем','напишут'],read:['прочитаю','прочитаешь','прочитает','прочитаем','прочитают'],cook:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],drink:['выпью','выпьешь','выпьет','выпьем','выпьют'],watch:['посмотрю','посмотришь','посмотрит','посмотрим','посмотрят'],play:['сыграю','сыграешь','сыграет','сыграем','сыграют'],fix:['починю','починишь','починит','починим','починят'],learn:['изучу','изучишь','изучит','изучим','изучат'],build:['построю','построишь','построит','построим','построят'],plan:['спланирую','спланируешь','спланирует','спланируем','спланируют'],buy:['куплю','купишь','купит','купим','купят'],solve:['решу','решишь','решит','решим','решат'],call:['позвоню','позвонишь','позвонит','позвоним','позвонят'],sleep:['посплю','поспишь','поспит','поспим','поспят'],send:['отправлю','отправишь','отправит','отправим','отправят'],visit:['посещу','посетишь','посетит','посетим','посетят'],check:['осмотрю','осмотришь','осмотрит','осмотрим','осмотрят'],prepare:['приготовлю','приготовишь','приготовит','приготовим','приготовят'],draw:['нарисую','нарисуешь','нарисует','нарисуем','нарисуют'],meet:['встречу','встретишь','встретит','встретим','встретят']};const person=x[1]==='я'?0:x[1]==='ты'?1:['мы'].includes(x[1])?3:['они','дети','мои родители','студенты'].includes(x[1])?4:2;return forms[x[2]][person]} function ruVerbFuturePast(x){return ruVerbFuture(x)}
 function renderNav(){let out='';tenseGroups.forEach(([group, items])=>{out+=`<div class="nav-section"><div class="nav-section-title">${group}</div>`;items.forEach(item=>{const i=allTenses.indexOf(item),done=stored[i]?.done;out+=`<button class="tense-link ${i===selected?'active':''} ${done?'done':''}" data-index="${i}"><i class="tense-dot"></i>${item[0].replace('Future in the Past ','F. in Past ')}</button>`});out+='</div>'});$('#tenseList').innerHTML=out;document.querySelectorAll('.tense-link').forEach(b=>b.onclick=()=>switchTense(+b.dataset.index));$('#courseProgress').textContent=`${Object.values(stored).filter(x=>x.done).length} / 24`}
-function switchTense(i){selected=i;current=stored[i]?.position||0;built=[];hintStep=0;activeExercise=null;renderNav();renderLesson();$('#sidebar').classList.remove('open')}
+function switchTense(i){selected=i;current=stored[i]?.position||0;built=[];hintStep=0;activeExercise=null;renderNav();renderLesson();closeDrawer()}
 function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
 function currentExercise(){if(!activeExercise)activeExercise=sentenceFor(selected,Math.floor(Math.random()*subjects.length));return activeExercise}
-function renderLesson(){const t=allTenses[selected], ex=currentExercise();ordered=shuffle([...ex.tokens,...ex.distractors]);built=[];hintStep=0;$('#tenseTitle').textContent=t[0];$('#crumbTense').textContent=t[0];$('#tenseDescription').textContent=t[1];$('#difficultyBadge').textContent=t[2];$('#translation').textContent=ex.translation;$('#taskNumber').textContent=String(current+1).padStart(2,'0');const pct=Math.round(current/20*100);$('#progressFill').style.width=pct+'%';$('#percentProgress').textContent=pct+'%';clearFeedback();renderWords();renderAnswer();updateStats()}
+function renderLesson(){const t=allTenses[selected], ex=currentExercise();ordered=shuffle([...ex.tokens,...ex.distractors]);built=[];hintStep=0;$('#tenseTitle').textContent=t[0];$('#crumbTense').textContent=t[0];$('#tenseDescription').textContent=t[1];$('#difficultyBadge').textContent=t[2];$('#translation').textContent=ex.translation;$('#taskNumber').textContent=String(current+1).padStart(2,'0');const pct=Math.round(current/20*100);$('#progressFill').style.width=pct+'%';$('#percentProgress').textContent=pct+'%';$('#progressBar').setAttribute('aria-valuenow',pct);$('#trainerCard').classList.remove('success-card');$('#answerZone').classList.remove('shake');clearFeedback();renderWords();renderAnswer();updateStats()}
 function renderWords(){const ex=currentExercise();$('#wordBank').innerHTML=ordered.map((word,i)=>`<button class="word ${built.includes(i)?'used':''}" data-i="${i}">${word}</button>`).join('');document.querySelectorAll('.word').forEach(b=>b.onclick=()=>{built.push(+b.dataset.i);renderWords();renderAnswer();clearFeedback()})}
 function renderAnswer(){const z=$('#answerZone');if(!built.length){z.innerHTML='<span class="answer-placeholder">Нажимайте на слова ниже</span>';z.classList.remove('has-answer');return}z.classList.add('has-answer');z.innerHTML=built.map((i,k)=>`<button class="answer-token" data-k="${k}">${ordered[i]}</button>`).join('');document.querySelectorAll('.answer-token').forEach(b=>b.onclick=()=>{built.splice(+b.dataset.k,1);renderWords();renderAnswer()})}
 function clearFeedback(){const f=$('#feedback');f.className='feedback';f.textContent=''}
-function check(){const ex=currentExercise();if(!built.length){showToast('Сначала соберите предложение');return}const given=built.map(i=>ordered[i]).join(' ');if(given===ex.tokens.join(' ')){right++;recordCorrect();current++;activeExercise=null;stored[selected]={position:current,done:current>=20};localStorage.setItem('tenselab-progress',JSON.stringify(stored));const f=$('#feedback');f.className='feedback show success';f.textContent='Верно! Отличная структура предложения.';updateStats();$('#trainerCard').classList.add('success-card');setTimeout(()=>{if(current>=20){showToast('Время освоено! Выберите следующее.');current=0;stored[selected]={position:0,done:true};localStorage.setItem('tenselab-progress',JSON.stringify(stored));renderNav()}renderLesson()},850)}else{wrong++;attempts++;const f=$('#feedback');f.className='feedback show error';f.textContent='Почти. Проверьте порядок слов, маркер времени и форму глагола — попробуйте ещё раз.';$('#answerZone').style.borderColor='#ef9999';setTimeout(()=>$('#answerZone').style.borderColor='',500);updateStats()}}
+function check(){const ex=currentExercise();if(!built.length){showToast('Сначала соберите предложение');return}const given=built.map(i=>ordered[i]).join(' ');if(given===ex.tokens.join(' ')){right++;recordCorrect();current++;activeExercise=null;stored[selected]={position:current,done:current>=20};localStorage.setItem('tenselab-progress',JSON.stringify(stored));const f=$('#feedback');f.className='feedback show success';f.textContent='Верно! Отличная структура предложения.';updateStats();haptic([12,40,18]);$('#trainerCard').classList.add('success-card');setTimeout(()=>{if(current>=20){showToast('Время освоено! Выберите следующее.');current=0;stored[selected]={position:0,done:true};localStorage.setItem('tenselab-progress',JSON.stringify(stored));renderNav()}renderLesson()},850)}else{wrong++;attempts++;const f=$('#feedback');f.className='feedback show error';f.textContent='Почти. Проверьте порядок слов, маркер времени и форму глагола — попробуйте ещё раз.';haptic(60);const z=$('#answerZone');z.classList.remove('shake');void z.offsetWidth;z.classList.add('shake');setTimeout(()=>z.classList.remove('shake'),600);updateStats()}}
 function updateStats(){const done=right+wrong,daily=todayCorrect(),goal=profile.dailyGoal,streak=currentStreak();$('#xpCount').textContent=profile.totalXP;$('#streakCount').textContent=streak;$('#accuracyValue').textContent=done?Math.round(right/done*100)+'%':'—';$('#accuracySub').textContent=done?`${right} верно · ${wrong} ошибок`:'Начните практику';$('#dailyFill').style.width=Math.min(daily/goal*100,100)+'%';$('#dailyCount').textContent=`${daily} / ${goal}`;$('#dailyGoalText').textContent=`${goal} правильных предложений`;$('#profileName').textContent=profile.name;$('#profileStreak').textContent=streak?`Серия: ${streak} ${streak===1?'день':'дней'} 🔥`:'Серия начнётся сегодня';$('#avatarLetters').textContent=profile.name==='Мой прогресс'?'Я':profile.name.trim().slice(0,2).toUpperCase();$('#levelBadge').textContent=Math.floor(profile.totalXP/250)+1}
 function hint(){const ex=currentExercise();if(hintStep>=ex.tokens.length){showToast('Все слова уже показаны');return}const needed=ex.tokens[hintStep];const idx=ordered.findIndex((w,i)=>w===needed&&!built.includes(i));if(idx>=0){built.push(idx);hintStep++;renderWords();renderAnswer();showToast(`Подсказка: «${needed}»`)} }
 function listen(){const ex=currentExercise();if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(ex.answer);u.lang='en-US';u.rate=.82;speechSynthesis.speak(u)}else showToast('Озвучка не поддерживается в этом браузере')}
-function showToast(s){const t=$('#toast');t.textContent=s;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2200)}
+let toastTimer;function showToast(s){const t=$('#toast');t.textContent=s;t.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('visible'),2400)}
 async function shareResult(){const daily=todayCorrect(),streak=currentStreak(),text=`Мой результат в TenseLab: ${daily} из ${profile.dailyGoal} правильных предложений сегодня, серия — ${streak} дн. 🔥`;if(navigator.share){try{await navigator.share({title:'TenseLab',text});return}catch(error){if(error.name==='AbortError')return}}try{if(navigator.clipboard)await navigator.clipboard.writeText(text);else throw new Error('No clipboard');showToast('Результат скопирован') }catch(error){const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();document.execCommand('copy');area.remove();showToast('Результат скопирован')}}
-$('#checkButton').onclick=check;$('#clearButton').onclick=()=>{built=[];renderWords();renderAnswer();clearFeedback()};$('#shuffleButton').onclick=()=>{built=[];ordered=shuffle(ordered);renderWords();renderAnswer();clearFeedback()};$('#hintButton').onclick=hint;$('#listenButton').onclick=listen;$('#menuButton').onclick=()=>$('#sidebar').classList.toggle('open');$('#formulaButton').onclick=()=>{const t=allTenses[selected],d=$('#formulaDialog');$('#dialogTitle').textContent=t[0];$('#dialogUsage').textContent=t[1];$('#dialogFormula').innerHTML='<b>Пример</b><br>'+t[4];d.showModal()};$('#closeDialog').onclick=()=>$('#formulaDialog').close();$('#dailyGoalButton').onclick=()=>$('#goalDialog').showModal();$('#profileButton').onclick=()=>{$('#profileNameInput').value=profile.name==='Мой прогресс'?'':profile.name;$('#profileDialog').showModal()};$('#saveProfileButton').onclick=()=>{const name=$('#profileNameInput').value.trim();if(name)profile.name=name;saveProfile();updateStats();$('#profileDialog').close()};document.querySelectorAll('.goal-options button').forEach(button=>button.onclick=()=>{profile.dailyGoal=+button.dataset.goal;saveProfile();updateStats();$('#goalDialog').close();showToast('Дневная цель обновлена')});document.querySelectorAll('[data-close]').forEach(button=>button.onclick=()=>$('#'+button.dataset.close).close());$('#shareButton').onclick=shareResult;document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName!=='INPUT')check()});if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));renderNav();renderLesson();
+
+/* ==========================================================================
+   Fluid interaction layer
+   Feedback lands on pointer-down, drags track the finger 1:1, releases animate
+   to where the gesture was going, and every motion has a reduced-motion
+   equivalent. See the notes in styles.css for the matching curves.
+   ========================================================================== */
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const wideLayout = matchMedia('(min-width: 900px)');
+const sidebar = $('#sidebar'), scrim = $('#scrim'), menuButton = $('#menuButton'), topbar = $('#topbar');
+
+function haptic(pattern) {
+  if (navigator.vibrate && !reduceMotion.matches) navigator.vibrate(pattern);
+}
+
+/* Apple's momentum projection: where would this flick come to rest? */
+function project(velocity, deceleration = 0.998) {
+  return (velocity / 1000) * deceleration / (1 - deceleration);
+}
+
+/* Past a boundary the surface resists progressively instead of stopping dead. */
+function rubberband(overshoot, dimension, constant = 0.55) {
+  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+}
+
+/* -- Drawer ---------------------------------------------------------------- */
+
+let drawerOpen = false;
+let drag = null;
+
+function applyDrawerState() {
+  sidebar.classList.toggle('open', drawerOpen);
+  sidebar.style.translate = '';
+  sidebar.inert = !drawerOpen;
+  sidebar.setAttribute('aria-hidden', String(!drawerOpen));
+  menuButton.setAttribute('aria-expanded', String(drawerOpen));
+  scrim.style.opacity = '';
+  scrim.classList.toggle('visible', drawerOpen);
+  document.body.classList.toggle('no-scroll', drawerOpen);
+}
+
+function openDrawer() {
+  if (wideLayout.matches || drawerOpen) return;
+  drawerOpen = true;
+  applyDrawerState();
+  (sidebar.querySelector('.tense-link.active') || sidebar.querySelector('button, a'))?.focus({ preventScroll: true });
+}
+
+function closeDrawer({ restoreFocus = false } = {}) {
+  if (!drawerOpen) return;
+  drawerOpen = false;
+  applyDrawerState();
+  if (restoreFocus) menuButton.focus({ preventScroll: true });
+}
+
+function syncLayout() {
+  if (wideLayout.matches) {
+    drawerOpen = false;
+    sidebar.classList.remove('open');
+    sidebar.style.translate = '';
+    sidebar.inert = false;
+    sidebar.removeAttribute('aria-hidden');
+    scrim.classList.remove('visible');
+    document.body.classList.remove('no-scroll');
+  } else {
+    applyDrawerState();
+  }
+}
+
+sidebar.addEventListener('pointerdown', event => {
+  if (wideLayout.matches || !drawerOpen || !event.isPrimary) return;
+  drag = { id: event.pointerId, x0: event.clientX, y0: event.clientY, dx: 0, axis: null, samples: [[event.clientX, event.timeStamp]] };
+});
+
+sidebar.addEventListener('pointermove', event => {
+  if (!drag || event.pointerId !== drag.id) return;
+  const dx = event.clientX - drag.x0, dy = event.clientY - drag.y0;
+  if (!drag.axis) {
+    /* Horizontal dismiss and vertical scroll are both live until intent is clear. */
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+    if (Math.abs(dy) >= Math.abs(dx)) { drag = null; return; }
+    drag.axis = 'x';
+    sidebar.setPointerCapture(drag.id);
+    sidebar.classList.add('dragging');
+  }
+  drag.samples.push([event.clientX, event.timeStamp]);
+  if (drag.samples.length > 5) drag.samples.shift();
+  const width = sidebar.offsetWidth;
+  drag.dx = dx <= 0 ? dx : rubberband(dx, width);
+  sidebar.style.translate = drag.dx + 'px 0';
+  scrim.style.opacity = String(Math.max(0, Math.min(1, 1 + drag.dx / width)));
+});
+
+function endDrag(event) {
+  if (!drag || event.pointerId !== drag.id) return;
+  const committed = drag.axis === 'x', dx = drag.dx, width = sidebar.offsetWidth;
+  let velocity = 0;
+  const [first, last] = [drag.samples[0], drag.samples[drag.samples.length - 1]];
+  if (last[1] > first[1]) velocity = (last[0] - first[0]) / (last[1] - first[1]) * 1000;
+  drag = null;
+  sidebar.classList.remove('dragging');
+  if (!committed) return;
+  /* Land where the throw was headed, not where the finger happened to stop. */
+  if (dx + project(velocity) < -width / 2) {
+    haptic(8);
+    closeDrawer();
+  } else {
+    applyDrawerState();
+  }
+}
+
+sidebar.addEventListener('pointerup', endDrag);
+sidebar.addEventListener('pointercancel', endDrag);
+wideLayout.addEventListener('change', syncLayout);
+
+menuButton.onclick = () => (drawerOpen ? closeDrawer({ restoreFocus: true }) : openDrawer());
+scrim.onclick = () => closeDrawer({ restoreFocus: true });
+
+/* -- Dialogs --------------------------------------------------------------- */
+
+let lastFocused = null;
+
+function openDialog(id) {
+  const dialog = $('#' + id);
+  lastFocused = document.activeElement;
+  dialog.classList.remove('closing');
+  dialog.showModal();
+  return dialog;
+}
+
+function dismissDialog(dialog) {
+  if (!dialog.open || dialog.classList.contains('closing')) return;
+  if (reduceMotion.matches) { dialog.close(); return; }
+  /* Leave along the path it arrived on. */
+  dialog.classList.add('closing');
+  dialog.addEventListener('animationend', () => {
+    dialog.classList.remove('closing');
+    dialog.close();
+  }, { once: true });
+}
+
+document.querySelectorAll('dialog').forEach(dialog => {
+  dialog.addEventListener('cancel', event => { event.preventDefault(); dismissDialog(dialog); });
+  dialog.addEventListener('pointerdown', event => { if (event.target === dialog) dismissDialog(dialog); });
+  dialog.addEventListener('close', () => { lastFocused?.focus?.({ preventScroll: true }); lastFocused = null; });
+});
+
+function syncGoalOptions() {
+  document.querySelectorAll('.goal-options button')
+    .forEach(button => button.setAttribute('aria-pressed', String(+button.dataset.goal === profile.dailyGoal)));
+}
+
+/* -- Bindings -------------------------------------------------------------- */
+
+$('#checkButton').onclick = check;
+$('#clearButton').onclick = () => { built = []; renderWords(); renderAnswer(); clearFeedback() };
+$('#shuffleButton').onclick = () => { built = []; ordered = shuffle(ordered); renderWords(); renderAnswer(); clearFeedback() };
+$('#hintButton').onclick = hint;
+$('#listenButton').onclick = listen;
+$('#shareButton').onclick = shareResult;
+
+$('#formulaButton').onclick = () => {
+  const tense = allTenses[selected];
+  $('#dialogTitle').textContent = tense[0];
+  $('#dialogUsage').textContent = tense[1];
+  $('#dialogFormula').textContent = tense[3];
+  const examples = $('#dialogExamples');
+  examples.replaceChildren(Object.assign(document.createElement('b'), { textContent: 'ПРИМЕР' }), tense[4]);
+  openDialog('formulaDialog');
+};
+$('#closeDialog').onclick = () => dismissDialog($('#formulaDialog'));
+
+$('#dailyGoalButton').onclick = () => { syncGoalOptions(); openDialog('goalDialog') };
+$('#profileButton').onclick = () => {
+  $('#profileNameInput').value = profile.name === defaultProfile.name ? '' : profile.name;
+  openDialog('profileDialog');
+};
+
+function saveProfileName() {
+  const name = $('#profileNameInput').value.trim();
+  if (name) profile.name = name;
+  saveProfile();
+  updateStats();
+  dismissDialog($('#profileDialog'));
+}
+$('#saveProfileButton').onclick = saveProfileName;
+$('#profileNameInput').addEventListener('keydown', event => { if (event.key === 'Enter') saveProfileName() });
+
+document.querySelectorAll('.goal-options button').forEach(button => button.onclick = () => {
+  profile.dailyGoal = +button.dataset.goal;
+  saveProfile();
+  updateStats();
+  syncGoalOptions();
+  dismissDialog($('#goalDialog'));
+  showToast('Дневная цель обновлена');
+});
+document.querySelectorAll('[data-close]').forEach(button => button.onclick = () => dismissDialog($('#' + button.dataset.close)));
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && drawerOpen) { closeDrawer({ restoreFocus: true }); return }
+  if (event.key !== 'Enter') return;
+  if (document.querySelector('dialog[open]') || event.target.tagName === 'INPUT') return;
+  check();
+});
+
+/* The divider under the toolbar only earns its keep once content slides beneath it. */
+addEventListener('scroll', () => topbar.classList.toggle('scrolled', scrollY > 6), { passive: true });
+/* iOS only applies :active styling to non-anchor elements once touch is observed. */
+document.addEventListener('touchstart', () => {}, { passive: true });
+
+/* An update never interrupts a sentence in progress: it swaps in the moment the
+   app goes to the background, and is live on the next launch. */
+function applyUpdateWhenBackgrounded(registration) {
+  const apply = () => {
+    if (document.visibilityState !== 'hidden') return;
+    document.removeEventListener('visibilitychange', apply);
+    registration.waiting?.postMessage('skip-waiting');
+  };
+  document.addEventListener('visibilitychange', apply);
+}
+
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').then(registration => {
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing;
+        worker?.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+            showToast('Обновление загружено — включится при следующем запуске');
+            applyUpdateWhenBackgrounded(registration);
+          }
+        });
+      });
+    }).catch(() => {});
+  });
+}
+
+scrim.hidden = false;
+syncLayout();
+syncGoalOptions();
+renderNav();
+renderLesson();

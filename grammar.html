@@ -1,10 +1,46 @@
 <!doctype html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#25b65a" /><link rel="manifest" href="manifest.webmanifest" />
-  <title>Grammar Lab — TenseLab</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" /><link rel="stylesheet" href="styles.css" />
-</head>
-<body class="grammar-page"><main class="grammar-shell"><header class="grammar-header"><a href="index.html" class="back-link">← Практика времён</a><div class="brand"><span class="brand-mark">T</span><span>TenseLab</span></div></header><section class="grammar-intro"><span class="eyebrow"><span class="live-dot"></span> ORIGINAL GRAMMAR PRACTICE</span><h1>Grammar Lab</h1><p>Короткие авторские проверки по ключевым темам английской грамматики.</p></section><section class="module-grid" id="moduleGrid"></section><section class="quiz-card" id="quizCard" hidden><button class="back-link quiz-back" id="quizBack">← Все модули</button><div class="quiz-top"><span id="quizUnit">МОДУЛЬ</span><span id="quizProgress">1 / 5</span></div><h2 id="quizQuestion"></h2><div id="quizOptions" class="quiz-options"></div><div id="quizFeedback" class="quiz-feedback"></div><button class="check-btn" id="nextQuestion" hidden>Следующий вопрос →</button></section></main><script src="grammar.js"></script></body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Grammar Lab — TenseLab</title>
+    <meta name="description" content="Короткие проверочные модули по ключевым темам английской грамматики." />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1310" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TenseLab" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="grammar-page">
+    <main class="grammar-shell">
+      <header class="grammar-header">
+        <a href="index.html" class="back-link">← Практика времён</a>
+        <div class="brand"><span class="brand-mark" aria-hidden="true">T</span><span>TenseLab</span></div>
+      </header>
+
+      <section class="grammar-intro">
+        <span class="eyebrow"><span class="live-dot" aria-hidden="true"></span> ORIGINAL GRAMMAR PRACTICE</span>
+        <h1>Grammar Lab</h1>
+        <p>Короткие авторские проверки по ключевым темам английской грамматики.</p>
+      </section>
+
+      <section class="module-grid" id="moduleGrid"></section>
+
+      <section class="quiz-card" id="quizCard" hidden>
+        <button class="back-link quiz-back" id="quizBack">← Все модули</button>
+        <div class="quiz-top"><span id="quizUnit">МОДУЛЬ</span><span id="quizProgress">1 / 5</span></div>
+        <h2 id="quizQuestion"></h2>
+        <div id="quizOptions" class="quiz-options"></div>
+        <p id="quizFeedback" class="quiz-feedback" aria-live="polite"></p>
+        <button class="check-btn" id="nextQuestion" hidden>Следующий вопрос →</button>
+      </section>
+    </main>
+    <script src="grammar.js"></script>
+  </body>
 </html>
