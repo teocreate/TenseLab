@@ -2,81 +2,170 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>TenseLab — тренажёр английских времён</title>
-    <meta name="theme-color" content="#25b65a" />
+    <meta name="description" content="Тренажёр английских времён: соберите предложение из слов и сразу получите разбор." />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d1310" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TenseLab" />
+    <meta name="format-detection" content="telephone=no" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#trainerCard">Перейти к тренажёру</a>
+    <div class="scrim" id="scrim" hidden></div>
+
     <main class="app-shell">
-      <aside class="sidebar" id="sidebar">
-        <div class="brand"><span class="brand-mark">T</span><span>TenseLab</span></div>
+      <aside class="sidebar" id="sidebar" aria-label="Времена и разделы" aria-hidden="true">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">T</span><span>TenseLab</span></div>
+
         <button class="profile-card profile-button" id="profileButton" aria-label="Настроить профиль">
-          <div class="avatar" id="avatarLetters">Я</div>
-          <div><strong id="profileName">Мой прогресс</strong><small id="profileStreak">Начните свою серию</small></div>
-          <div class="level" id="levelBadge">1</div>
+          <div class="avatar" id="avatarLetters" aria-hidden="true">Я</div>
+          <div>
+            <strong id="profileName">Мой прогресс</strong>
+            <small id="profileStreak">Начните свою серию</small>
+          </div>
+          <div class="level" id="levelBadge" aria-hidden="true">1</div>
         </button>
+
         <nav class="course-nav" aria-label="Времена английского языка">
           <div class="nav-head"><span>ВРЕМЕНА</span><span id="courseProgress">0 / 24</span></div>
           <div id="tenseList"></div>
         </nav>
-        <a class="grammar-lab-link" href="grammar.html"><span>✦</span><b>Grammar Lab</b><small>Проверочные модули</small><i>→</i></a>
+
+        <a class="grammar-lab-link" href="grammar.html">
+          <span aria-hidden="true">✦</span><b>Grammar Lab</b><small>Проверочные модули</small><i aria-hidden="true">→</i>
+        </a>
+
         <button class="daily-card" id="dailyGoalButton">
-          <span class="sun">✦</span>
+          <span class="sun" aria-hidden="true">✦</span>
           <div><b>Цель на сегодня</b><p id="dailyGoalText">10 правильных предложений</p></div>
-          <div class="daily-progress"><i id="dailyFill"></i></div>
           <span id="dailyCount">0 / 10</span>
+          <div class="daily-progress"><i id="dailyFill"></i></div>
         </button>
       </aside>
 
       <section class="workspace">
-        <header class="topbar">
-          <button class="menu-button" id="menuButton" aria-label="Открыть список времён">☰</button>
-          <div class="crumb"><span>Практика</span><i>/</i><strong id="crumbTense">Present Simple</strong></div>
+        <header class="topbar" id="topbar">
+          <button class="menu-button" id="menuButton" aria-label="Открыть список времён" aria-controls="sidebar" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+          <div class="crumb"><span>Практика</span><i aria-hidden="true">/</i><strong id="crumbTense">Present Simple</strong></div>
           <div class="top-stats">
-            <button class="share-button" id="shareButton" title="Поделиться результатом">↗ <span>Поделиться</span></button>
-            <span class="xp">✦ <b id="xpCount">0</b> XP</span>
-            <span class="streak">⚡ <b id="streakCount">0</b> дн.</span>
+            <button class="share-button" id="shareButton" aria-label="Поделиться результатом">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+              </svg>
+            </button>
+            <span class="xp" title="Очки опыта">✦ <b id="xpCount">0</b></span>
+            <span class="streak" title="Серия дней">⚡ <b id="streakCount">0</b></span>
           </div>
         </header>
 
         <section class="lesson-head">
-          <div class="eyebrow"><span class="live-dot"></span> ТРЕНИРОВКА ДО АВТОМАТИЗМА</div>
-          <div class="title-row"><div><h1 id="tenseTitle">Present Simple</h1><p id="tenseDescription">Привычки, факты и регулярные действия.</p></div><button class="formula-button" id="formulaButton">Формула <span>↗</span></button></div>
-          <div class="lesson-meta"><span class="badge" id="difficultyBadge">Базовый</span><span><b id="taskNumber">01</b> / 20 заданий</span><div class="progress-line"><i id="progressFill"></i></div><span id="percentProgress">0%</span></div>
+          <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> ТРЕНИРОВКА ДО АВТОМАТИЗМА</div>
+          <div class="title-row">
+            <div>
+              <h1 id="tenseTitle">Present Simple</h1>
+              <p id="tenseDescription">Привычки, факты и регулярные действия.</p>
+            </div>
+            <button class="formula-button" id="formulaButton">Формула <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="lesson-meta">
+            <span class="badge" id="difficultyBadge">Базовый</span>
+            <span><b id="taskNumber">01</b> / 20 заданий</span>
+            <div class="progress-line" role="progressbar" aria-label="Прогресс по времени" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar"><i id="progressFill"></i></div>
+            <span id="percentProgress">0%</span>
+          </div>
         </section>
 
         <section class="trainer-card" id="trainerCard">
-          <div class="task-top"><span class="task-label">Соберите предложение</span><span class="task-type">ПЕРЕВОД → EN</span></div>
+          <div class="task-top">
+            <span class="task-label">СОБЕРИТЕ ПРЕДЛОЖЕНИЕ</span>
+            <span class="task-type">ПЕРЕВОД → EN</span>
+          </div>
           <h2 id="translation">Она обычно пьёт чай утром.</h2>
-          <div class="answer-zone" id="answerZone" aria-live="polite"><span class="answer-placeholder">Нажимайте на слова ниже</span></div>
-          <div class="feedback" id="feedback" aria-live="polite"></div>
-          <div class="word-bank-label"><span>СЛОВА</span><button id="shuffleButton" title="Перемешать слова">⤨ перемешать</button></div>
+          <div class="answer-zone" id="answerZone" aria-live="polite" aria-label="Ваш ответ">
+            <span class="answer-placeholder">Нажимайте на слова ниже</span>
+          </div>
+          <p class="feedback" id="feedback" aria-live="polite"></p>
+          <div class="word-bank-label">
+            <span>СЛОВА</span>
+            <button id="shuffleButton" aria-label="Перемешать слова">⤨ перемешать</button>
+          </div>
           <div class="word-bank" id="wordBank"></div>
-          <div class="task-actions"><button class="secondary-btn" id="clearButton">Очистить</button><button class="check-btn" id="checkButton">Проверить <span>→</span></button></div>
+          <div class="task-actions">
+            <button class="secondary-btn" id="clearButton">Очистить</button>
+            <button class="check-btn" id="checkButton">Проверить <span aria-hidden="true">→</span></button>
+          </div>
         </section>
 
         <section class="bottom-panel">
-          <button class="tool-card" id="hintButton"><span class="tool-icon hint-icon">?</span><span><b>Подсказка</b><small>Открою следующий шаг</small></span><i>→</i></button>
-          <button class="tool-card" id="listenButton"><span class="tool-icon listen-icon">◖</span><span><b>Послушать</b><small>Произношение ответа</small></span><i>→</i></button>
-          <div class="accuracy-card"><span>ТОЧНОСТЬ</span><b id="accuracyValue">—</b><small id="accuracySub">Начните практику</small></div>
+          <button class="tool-card" id="hintButton">
+            <span class="tool-icon hint-icon" aria-hidden="true">?</span>
+            <span><b>Подсказка</b><small>Открою следующий шаг</small></span>
+            <i aria-hidden="true">→</i>
+          </button>
+          <button class="tool-card" id="listenButton">
+            <span class="tool-icon listen-icon" aria-hidden="true">◖</span>
+            <span><b>Послушать</b><small>Произношение ответа</small></span>
+            <i aria-hidden="true">→</i>
+          </button>
+          <div class="accuracy-card">
+            <span>ТОЧНОСТЬ</span>
+            <b id="accuracyValue">—</b>
+            <small id="accuracySub">Начните практику</small>
+          </div>
         </section>
       </section>
     </main>
 
-    <dialog id="formulaDialog"><button class="close-dialog" id="closeDialog">×</button><span class="dialog-overline">ШПАРГАЛКА</span><h3 id="dialogTitle"></h3><p id="dialogUsage"></p><div class="formula-box" id="dialogFormula"></div><div class="examples" id="dialogExamples"></div></dialog>
-    <dialog id="goalDialog" class="settings-dialog"><button class="close-dialog" data-close="goalDialog">×</button><span class="dialog-overline">НАСТРОЙКА</span><h3>Цель на сегодня</h3><p>Выберите количество правильных предложений. Стрик засчитывается после первого верного ответа в день.</p><div class="goal-options"><button data-goal="5">5<br><small>лёгкий темп</small></button><button data-goal="10">10<br><small>обычный</small></button><button data-goal="20">20<br><small>интенсив</small></button></div></dialog>
-    <dialog id="profileDialog" class="settings-dialog"><button class="close-dialog" data-close="profileDialog">×</button><span class="dialog-overline">ПРОФИЛЬ</span><h3>Как к вам обращаться?</h3><p>Имя остаётся только на этом устройстве.</p><input id="profileNameInput" maxlength="24" placeholder="Например, Маша" /><button class="check-btn save-profile" id="saveProfileButton">Сохранить</button></dialog>
-    <div class="toast" id="toast"></div>
+    <dialog id="formulaDialog" aria-labelledby="dialogTitle">
+      <div class="dialog-body">
+        <button class="close-dialog" id="closeDialog" aria-label="Закрыть">×</button>
+        <span class="dialog-overline">ШПАРГАЛКА</span>
+        <h3 id="dialogTitle"></h3>
+        <p id="dialogUsage"></p>
+        <div class="formula-box" id="dialogFormula"></div>
+        <div class="examples" id="dialogExamples"></div>
+      </div>
+    </dialog>
+
+    <dialog id="goalDialog" class="settings-dialog" aria-labelledby="goalDialogTitle">
+      <div class="dialog-body">
+        <button class="close-dialog" data-close="goalDialog" aria-label="Закрыть">×</button>
+        <span class="dialog-overline">НАСТРОЙКА</span>
+        <h3 id="goalDialogTitle">Цель на сегодня</h3>
+        <p>Выберите количество правильных предложений. Серия засчитывается после первого верного ответа за день.</p>
+        <div class="goal-options">
+          <button data-goal="5" aria-pressed="false">5<small>лёгкий темп</small></button>
+          <button data-goal="10" aria-pressed="false">10<small>обычный</small></button>
+          <button data-goal="20" aria-pressed="false">20<small>интенсив</small></button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="profileDialog" class="settings-dialog" aria-labelledby="profileDialogTitle">
+      <div class="dialog-body">
+        <button class="close-dialog" data-close="profileDialog" aria-label="Закрыть">×</button>
+        <span class="dialog-overline">ПРОФИЛЬ</span>
+        <h3 id="profileDialogTitle">Как к вам обращаться?</h3>
+        <p>Имя остаётся только на этом устройстве.</p>
+        <input id="profileNameInput" maxlength="24" placeholder="Например, Маша" autocomplete="given-name" enterkeyhint="done" />
+        <button class="check-btn save-profile" id="saveProfileButton">Сохранить</button>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="app.js"></script>
   </body>
 </html>

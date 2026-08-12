@@ -1,0 +1,6 @@
+<!-- Source for maskable-512.png: artwork inside the 80% safe zone, full bleed -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1faa53"/>
+  <path d="M160 168h192v52H283v160h-54V220h-69z" fill="#ffffff"/>
+  <circle cx="345" cy="356" r="30" fill="#c9f5d8"/>
+</svg>

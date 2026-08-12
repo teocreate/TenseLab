@@ -1,0 +1,6 @@
+<!-- Source for apple-touch-icon.png: opaque square, iOS applies its own mask -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1faa53"/>
+  <path d="M136 146h240v58H285v178h-58V204h-91z" fill="#ffffff"/>
+  <circle cx="368" cy="368" r="36" fill="#c9f5d8"/>
+</svg>
