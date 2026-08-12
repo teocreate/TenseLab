@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TenseLab — тренажёр английских времён</title>
+    <meta name="theme-color" content="#25b65a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TenseLab" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand"><span class="brand-mark">T</span><span>TenseLab</span></div>
+        <button class="profile-card profile-button" id="profileButton" aria-label="Настроить профиль">
+          <div class="avatar" id="avatarLetters">Я</div>
+          <div><strong id="profileName">Мой прогресс</strong><small id="profileStreak">Начните свою серию</small></div>
+          <div class="level" id="levelBadge">1</div>
+        </button>
+        <nav class="course-nav" aria-label="Времена английского языка">
+          <div class="nav-head"><span>ВРЕМЕНА</span><span id="courseProgress">0 / 24</span></div>
+          <div id="tenseList"></div>
+        </nav>
+        <a class="grammar-lab-link" href="grammar.html"><span>✦</span><b>Grammar Lab</b><small>Проверочные модули</small><i>→</i></a>
+        <button class="daily-card" id="dailyGoalButton">
+          <span class="sun">✦</span>
+          <div><b>Цель на сегодня</b><p id="dailyGoalText">10 правильных предложений</p></div>
+          <div class="daily-progress"><i id="dailyFill"></i></div>
+          <span id="dailyCount">0 / 10</span>
+        </button>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <button class="menu-button" id="menuButton" aria-label="Открыть список времён">☰</button>
+          <div class="crumb"><span>Практика</span><i>/</i><strong id="crumbTense">Present Simple</strong></div>
+          <div class="top-stats">
+            <button class="share-button" id="shareButton" title="Поделиться результатом">↗ <span>Поделиться</span></button>
+            <span class="xp">✦ <b id="xpCount">0</b> XP</span>
+            <span class="streak">⚡ <b id="streakCount">0</b> дн.</span>
+          </div>
+        </header>
+
+        <section class="lesson-head">
+          <div class="eyebrow"><span class="live-dot"></span> ТРЕНИРОВКА ДО АВТОМАТИЗМА</div>
+          <div class="title-row"><div><h1 id="tenseTitle">Present Simple</h1><p id="tenseDescription">Привычки, факты и регулярные действия.</p></div><button class="formula-button" id="formulaButton">Формула <span>↗</span></button></div>
+          <div class="lesson-meta"><span class="badge" id="difficultyBadge">Базовый</span><span><b id="taskNumber">01</b> / 20 заданий</span><div class="progress-line"><i id="progressFill"></i></div><span id="percentProgress">0%</span></div>
+        </section>
+
+        <section class="trainer-card" id="trainerCard">
+          <div class="task-top"><span class="task-label">Соберите предложение</span><span class="task-type">ПЕРЕВОД → EN</span></div>
+          <h2 id="translation">Она обычно пьёт чай утром.</h2>
+          <div class="answer-zone" id="answerZone" aria-live="polite"><span class="answer-placeholder">Нажимайте на слова ниже</span></div>
+          <div class="feedback" id="feedback" aria-live="polite"></div>
+          <div class="word-bank-label"><span>СЛОВА</span><button id="shuffleButton" title="Перемешать слова">⤨ перемешать</button></div>
+          <div class="word-bank" id="wordBank"></div>
+          <div class="task-actions"><button class="secondary-btn" id="clearButton">Очистить</button><button class="check-btn" id="checkButton">Проверить <span>→</span></button></div>
+        </section>
+
+        <section class="bottom-panel">
+          <button class="tool-card" id="hintButton"><span class="tool-icon hint-icon">?</span><span><b>Подсказка</b><small>Открою следующий шаг</small></span><i>→</i></button>
+          <button class="tool-card" id="listenButton"><span class="tool-icon listen-icon">◖</span><span><b>Послушать</b><small>Произношение ответа</small></span><i>→</i></button>
+          <div class="accuracy-card"><span>ТОЧНОСТЬ</span><b id="accuracyValue">—</b><small id="accuracySub">Начните практику</small></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="formulaDialog"><button class="close-dialog" id="closeDialog">×</button><span class="dialog-overline">ШПАРГАЛКА</span><h3 id="dialogTitle"></h3><p id="dialogUsage"></p><div class="formula-box" id="dialogFormula"></div><div class="examples" id="dialogExamples"></div></dialog>
+    <dialog id="goalDialog" class="settings-dialog"><button class="close-dialog" data-close="goalDialog">×</button><span class="dialog-overline">НАСТРОЙКА</span><h3>Цель на сегодня</h3><p>Выберите количество правильных предложений. Стрик засчитывается после первого верного ответа в день.</p><div class="goal-options"><button data-goal="5">5<br><small>лёгкий темп</small></button><button data-goal="10">10<br><small>обычный</small></button><button data-goal="20">20<br><small>интенсив</small></button></div></dialog>
+    <dialog id="profileDialog" class="settings-dialog"><button class="close-dialog" data-close="profileDialog">×</button><span class="dialog-overline">ПРОФИЛЬ</span><h3>Как к вам обращаться?</h3><p>Имя остаётся только на этом устройстве.</p><input id="profileNameInput" maxlength="24" placeholder="Например, Маша" /><button class="check-btn save-profile" id="saveProfileButton">Сохранить</button></dialog>
+    <div class="toast" id="toast"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
